@@ -11,7 +11,6 @@ import { Button } from '../../components/common/Button/Button';
 import { FolderPlus } from 'lucide-react';
 import type { File } from '../../types/file';
 import { isImageFile } from '../../utils/fileUtils';
-import { mockApi } from '../../utils/mockApi';
 import './_Drive.scss';
 
 export function Drive() {
@@ -37,11 +36,13 @@ export function Drive() {
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Load files on mount and when folder changes
   useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
+    loadFiles(currentFolderId);
+  }, [currentFolderId, loadFiles]);
 
   useEffect(() => {
+    // Filter files by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       setFilteredFiles(
@@ -102,15 +103,35 @@ export function Drive() {
 
   const handleFileDownload = async (file: File) => {
     try {
-      const blob = await mockApi.downloadFile(file.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const getFileById = useFilesStore.getState().getFileById;
+      const fileData = getFileById(file.id);
+      
+      if (!fileData || !fileData.downloadUrl) {
+        console.error('File not found or no download URL');
+        return;
+      }
+      
+      // If it's a base64 data URL, convert to blob
+      if (fileData.downloadUrl.startsWith('data:')) {
+        const response = await fetch(fileData.downloadUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // It's already a blob URL
+        const a = document.createElement('a');
+        a.href = fileData.downloadUrl;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     } catch (err) {
       console.error('Failed to download file:', err);
     }

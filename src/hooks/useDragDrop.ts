@@ -1,4 +1,4 @@
-import { useState, useCallback, DragEvent } from 'react';
+import { useState, useCallback, type DragEvent } from 'react';
 
 interface UseDragDropOptions {
   onDrop: (files: FileList, targetId?: string) => void;

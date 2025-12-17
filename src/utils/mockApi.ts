@@ -245,11 +245,14 @@ export const mockApi = {
     const data = getStoredData();
     const now = new Date().toISOString();
     
+    // Normalize parentId: undefined means root level
+    const normalizedParentId = request.parentId === undefined || request.parentId === 'root' ? undefined : request.parentId;
+    
     const folder: Folder = {
       id: generateId(),
       name: request.name,
       type: 'folder',
-      parentId: request.parentId || 'root',
+      parentId: normalizedParentId,
       createdAt: now,
       updatedAt: now,
     };

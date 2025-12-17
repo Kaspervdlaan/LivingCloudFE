@@ -1,37 +1,80 @@
 import { create } from 'zustand';
 import type { File, CreateFolderRequest } from '../types/file';
-import { mockApi } from '../utils/mockApi';
+
+// Helper to generate unique ID
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
 
 interface FilesState {
   files: File[];
+  allFiles: File[]; // All files and folders for tree building
   currentFolderId: string | undefined;
   loading: boolean;
   error: string | null;
-  loadFiles: (parentId?: string) => Promise<void>;
+  loadFiles: (parentId?: string) => void;
   uploadFiles: (files: FileList | globalThis.File[], parentId?: string) => Promise<void>;
-  createFolder: (request: CreateFolderRequest) => Promise<void>;
-  deleteFile: (fileId: string) => Promise<void>;
-  renameFile: (fileId: string, newName: string) => Promise<void>;
-  moveFile: (fileId: string, destinationId: string) => Promise<void>;
-  copyFile: (fileId: string, destinationId: string) => Promise<void>;
+  createFolder: (request: CreateFolderRequest) => void;
+  deleteFile: (fileId: string) => void;
+  renameFile: (fileId: string, newName: string) => void;
+  moveFile: (fileId: string, destinationId: string) => void;
+  copyFile: (fileId: string, destinationId: string) => void;
   navigateToFolder: (folderId: string | undefined) => void;
-  refreshFiles: () => Promise<void>;
+  refreshFiles: () => void;
+  getAllFolders: () => File[];
+  getFileById: (fileId: string) => File | undefined;
 }
+
+// Initialize with sample data
+const initializeSampleData = (): File[] => {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: generateId(),
+      name: 'Documents',
+      type: 'folder',
+      parentId: undefined,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: generateId(),
+      name: 'Pictures',
+      type: 'folder',
+      parentId: undefined,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+};
 
 export const useFilesStore = create<FilesState>((set, get) => ({
   files: [],
+  allFiles: initializeSampleData(), // Initialize with sample folders
   currentFolderId: undefined,
   loading: false,
   error: null,
 
-  loadFiles: async (parentId?: string) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await mockApi.getFiles(parentId);
-      set({ files: response.data, currentFolderId: parentId, loading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to load files', loading: false });
-    }
+  loadFiles: (parentId?: string) => {
+    const state = get();
+    // Filter files by parentId from allFiles, excluding the 'root' folder
+    const filteredFiles = state.allFiles.filter((f) => {
+      // Exclude the root folder (id: 'root') from being displayed
+      if (f.id === 'root') {
+        return false;
+      }
+      if (parentId === undefined) {
+        // Root level: files with no parentId
+        return f.parentId === undefined;
+      }
+      return f.parentId === parentId;
+    });
+    
+    set({ 
+      files: filteredFiles, 
+      currentFolderId: parentId, 
+      loading: false 
+    });
   },
 
   uploadFiles: async (fileList: FileList | globalThis.File[], parentId?: string) => {
@@ -48,7 +91,7 @@ export const useFilesStore = create<FilesState>((set, get) => ({
       // Process each file
       for (const domFile of fileArray) {
         // Generate unique ID
-        const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const fileId = generateId();
         
         // Create file data object
         const fileData: File = {
@@ -89,79 +132,156 @@ export const useFilesStore = create<FilesState>((set, get) => ({
         newFiles.push(fileData);
       }
       
-      // Add new files to state
-      // If we're viewing the folder where files were uploaded, add them to the displayed files
-      const updatedState = get();
-      if (updatedState.currentFolderId === targetParentId) {
-        set((currentState) => ({
-          files: [...currentState.files, ...newFiles],
-          loading: false,
-        }));
-      } else {
-        // If viewing a different folder, just add to the full list (files will be filtered on next load)
-        set((currentState) => ({
-          files: [...currentState.files, ...newFiles],
-          loading: false,
-        }));
-      }
+      // Add new files to allFiles
+      set((currentState) => ({
+        allFiles: [...currentState.allFiles, ...newFiles],
+        loading: false,
+      }));
+      
+      // Reload files to show only files in current folder
+      get().loadFiles(targetParentId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to upload files', loading: false });
     }
   },
 
-  createFolder: async (request: CreateFolderRequest) => {
+  createFolder: (request: CreateFolderRequest) => {
     const state = get();
     set({ loading: true, error: null });
+    
     try {
-      await mockApi.createFolder({
-        ...request,
-        parentId: request.parentId || state.currentFolderId,
-      });
-      await get().loadFiles(state.currentFolderId);
+      const targetParentId = request.parentId !== undefined ? request.parentId : (state.currentFolderId || undefined);
+      const now = new Date().toISOString();
+      
+      const newFolder: File = {
+        id: generateId(),
+        name: request.name,
+        type: 'folder',
+        parentId: targetParentId,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      // Add new folder to allFiles
+      set((currentState) => ({
+        allFiles: [...currentState.allFiles, newFolder],
+        loading: false,
+      }));
+      
+      // Reload files to show only files in current folder
+      get().loadFiles(targetParentId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to create folder', loading: false });
     }
   },
 
-  deleteFile: async (fileId: string) => {
-    const state = get();
+  deleteFile: (fileId: string) => {
     set({ loading: true, error: null });
+    
     try {
-      await mockApi.deleteFile(fileId);
-      await get().loadFiles(state.currentFolderId);
+      // Remove file and all children recursively
+      const removeRecursive = (id: string, files: File[]): File[] => {
+        return files.filter((f) => {
+          if (f.id === id) {
+            return false;
+          }
+          // Also remove children
+          if (f.parentId === id) {
+            return false;
+          }
+          return true;
+        }).map((f) => {
+          // Recursively remove children of children
+          if (f.parentId === id) {
+            return removeRecursive(f.id, [f])[0];
+          }
+          return f;
+        });
+      };
+      
+      set((currentState) => ({
+        allFiles: removeRecursive(fileId, currentState.allFiles),
+        loading: false,
+      }));
+      
+      // Reload files to refresh the view
+      get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to delete file', loading: false });
     }
   },
 
-  renameFile: async (fileId: string, newName: string) => {
-    const state = get();
+  renameFile: (fileId: string, newName: string) => {
     set({ loading: true, error: null });
+    
     try {
-      await mockApi.renameFile(fileId, newName);
-      await get().loadFiles(state.currentFolderId);
+      set((currentState) => ({
+        allFiles: currentState.allFiles.map((f) =>
+          f.id === fileId ? { ...f, name: newName, updatedAt: new Date().toISOString() } : f
+        ),
+        loading: false,
+      }));
+      
+      // Reload files to refresh the view
+      get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to rename file', loading: false });
     }
   },
 
-  moveFile: async (fileId: string, destinationId: string) => {
-    const state = get();
+  moveFile: (fileId: string, destinationId: string) => {
     set({ loading: true, error: null });
+    
     try {
-      await mockApi.moveFile(fileId, destinationId);
-      await get().loadFiles(state.currentFolderId);
+      set((currentState) => {
+        const updatedAllFiles = currentState.allFiles.map((f) =>
+          f.id === fileId ? { ...f, parentId: destinationId, updatedAt: new Date().toISOString() } : f
+        );
+        const updatedFiles = currentState.files.filter((f) => f.id !== fileId);
+        
+        return {
+          files: updatedFiles,
+          allFiles: updatedAllFiles,
+          loading: false,
+        };
+      });
+      
+      // Reload files for current folder
+      get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to move file', loading: false });
     }
   },
 
-  copyFile: async (fileId: string, destinationId: string) => {
-    const state = get();
+  copyFile: (fileId: string, destinationId: string) => {
     set({ loading: true, error: null });
+    
     try {
-      await mockApi.copyFile(fileId, destinationId);
-      await get().loadFiles(state.currentFolderId);
+      const state = get();
+      const fileToCopy = state.allFiles.find((f) => f.id === fileId);
+      
+      if (!fileToCopy) {
+        set({ error: 'File not found', loading: false });
+        return;
+      }
+      
+      const now = new Date().toISOString();
+      const copiedFile: File = {
+        ...fileToCopy,
+        id: generateId(),
+        name: `${fileToCopy.name} (copy)`,
+        parentId: destinationId,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      set((currentState) => ({
+        allFiles: [...currentState.allFiles, copiedFile],
+        loading: false,
+      }));
+      
+      // Reload files to refresh the view
+      get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to copy file', loading: false });
     }
@@ -171,9 +291,27 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     get().loadFiles(folderId);
   },
 
-  refreshFiles: async () => {
+  refreshFiles: () => {
     const state = get();
-    await get().loadFiles(state.currentFolderId);
+    get().loadFiles(state.currentFolderId);
+  },
+
+  getAllFolders: () => {
+    const state = get();
+    return state.allFiles.filter((f) => f.type === 'folder');
+  },
+
+  getFileById: (fileId: string) => {
+    const state = get();
+    return state.allFiles.find((f) => f.id === fileId);
+  },
+
+  getCurrentFolderName: () => {
+    const state = get();
+    if (state.currentFolderId === undefined) {
+      return 'My Drive';
+    }
+    const folder = state.allFiles.find((f) => f.id === state.currentFolderId && f.type === 'folder');
+    return folder ? folder.name : 'My Drive';
   },
 }));
-
