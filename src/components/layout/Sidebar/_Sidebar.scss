@@ -1,0 +1,25 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.sidebar {
+  width: 240px;
+  background-color: $surface;
+  border-right: 1px solid $border;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar__section {
+  padding: $spacing-md 0;
+}
+
+.sidebar__title {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 $spacing-lg $spacing-sm;
+  margin: 0;
+}
+

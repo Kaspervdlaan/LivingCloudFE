@@ -1,0 +1,67 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.drive {
+  min-height: 100%;
+}
+
+.drive__toolbar {
+  @include flex-between;
+  padding: $spacing-lg;
+  background-color: $surface;
+  border-bottom: 1px solid $border;
+}
+
+.drive__breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+}
+
+.drive__breadcrumb {
+  background: none;
+  border: none;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  transition: color $transition-base $ease-in-out;
+  
+  &:hover {
+    color: $text-primary;
+    background-color: $hover;
+  }
+}
+
+.drive__separator {
+  color: $text-secondary;
+}
+
+.drive__create-folder {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.drive__loading,
+.drive__error {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $text-secondary;
+}
+
+.drive__error {
+  color: #dc2626;
+}
+
+.drive__empty {
+  padding: $spacing-2xl;
+  text-align: center;
+  color: $text-secondary;
+  
+  p {
+    font-size: $font-size-lg;
+  }
+}
+

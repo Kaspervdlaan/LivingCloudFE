@@ -1,0 +1,33 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.folder-tree {
+  padding: $spacing-md;
+}
+
+.folder-tree__item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  cursor: pointer;
+  color: $text-primary;
+  font-size: $font-size-sm;
+  transition: background-color $transition-base $ease-in-out;
+  
+  &:hover {
+    background-color: $hover;
+  }
+  
+  &--active {
+    background-color: rgba($accent-500, 0.1);
+    color: $accent-600;
+    font-weight: $font-weight-medium;
+  }
+  
+  svg {
+    flex-shrink: 0;
+  }
+}
+

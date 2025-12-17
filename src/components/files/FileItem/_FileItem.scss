@@ -1,0 +1,103 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.file-item {
+  @include card;
+  position: relative;
+  cursor: pointer;
+  transition: all $transition-base $ease-in-out;
+  padding: $spacing-md;
+  
+  &:hover {
+    @include card-hover;
+    
+    .file-item__menu {
+      opacity: 1;
+    }
+  }
+  
+  &--grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 140px;
+  }
+  
+  &--list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+  }
+}
+
+.file-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-secondary;
+  margin-bottom: $spacing-sm;
+  
+  .file-item--list & {
+    margin-bottom: 0;
+  }
+}
+
+.file-item__thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: $radius-md;
+  max-width: 64px;
+  max-height: 64px;
+  
+  .file-item--grid & {
+    max-width: 80px;
+    max-height: 80px;
+  }
+}
+
+.file-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-item__name {
+  @include truncate;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.file-item__size {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.file-item__menu {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-sm;
+  padding: $spacing-xs;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-secondary;
+  opacity: 0;
+  transition: opacity $transition-base $ease-in-out;
+  border-radius: $radius-sm;
+  
+  &:hover {
+    background-color: $hover;
+    color: $text-primary;
+  }
+  
+  .file-item--list & {
+    position: static;
+    opacity: 1;
+  }
+}
+

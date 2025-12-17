@@ -1,0 +1,22 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout__body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.layout__main {
+  flex: 1;
+  overflow-y: auto;
+  background-color: $background;
+}
+

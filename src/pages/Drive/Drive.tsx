@@ -1,0 +1,234 @@
+import { useState, useEffect, useRef } from 'react';
+import { useFilesStore } from '../../store/useFilesStore';
+import { Layout } from '../../components/layout/Layout/Layout';
+import { FileGrid } from '../../components/files/FileGrid/FileGrid';
+import { FileList } from '../../components/files/FileList/FileList';
+import { DropZone } from '../../components/files/DropZone/DropZone';
+import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
+import { RenameModal } from '../../components/common/RenameModal/RenameModal';
+import { CreateFolderModal } from '../../components/common/CreateFolderModal/CreateFolderModal';
+import { Button } from '../../components/common/Button/Button';
+import { FolderPlus } from 'lucide-react';
+import type { File } from '../../types/file';
+import { isImageFile } from '../../utils/fileUtils';
+import { mockApi } from '../../utils/mockApi';
+import './_Drive.scss';
+
+export function Drive() {
+  const {
+    files,
+    loading,
+    error,
+    loadFiles,
+    uploadFiles,
+    createFolder,
+    deleteFile,
+    renameFile,
+    currentFolderId,
+    navigateToFolder,
+  } = useFilesStore();
+
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
+  const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      setFilteredFiles(
+        files.filter(
+          (file) => file.name.toLowerCase().includes(query)
+        )
+      );
+    } else {
+      setFilteredFiles(files);
+    }
+  }, [files, searchQuery]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      uploadFiles(files);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileDoubleClick = (file: File) => {
+    if (file.type === 'folder') {
+      navigateToFolder(file.id);
+    } else if (isImageFile(file)) {
+      setSelectedFile(file);
+      setIsPhotoPreviewOpen(true);
+    }
+  };
+
+  const handleFileRename = (file: File) => {
+    setSelectedFile(file);
+    setIsRenameModalOpen(true);
+  };
+
+  const handleRenameConfirm = async (newName: string) => {
+    if (selectedFile) {
+      await renameFile(selectedFile.id, newName);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleFileDelete = async (file: File) => {
+    if (window.confirm(`Are you sure you want to delete "${file.name}"?`)) {
+      await deleteFile(file.id);
+    }
+  };
+
+  const handleFileDownload = async (file: File) => {
+    try {
+      const blob = await mockApi.downloadFile(file.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download file:', err);
+    }
+  };
+
+  const handleCreateFolder = async (name: string) => {
+    await createFolder({ name });
+  };
+
+  const breadcrumbs = [];
+  if (currentFolderId) {
+    breadcrumbs.push({ id: undefined, name: 'My Drive' });
+  }
+
+  return (
+    <Layout
+      onSearch={handleSearch}
+      onUpload={handleUploadClick}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+    >
+      <DropZone>
+        <div className="drive">
+          <div className="drive__toolbar">
+            {breadcrumbs.length > 0 && (
+              <div className="drive__breadcrumbs">
+                {breadcrumbs.map((crumb, index) => (
+                  <span key={crumb.id || 'root'}>
+                    <button
+                      className="drive__breadcrumb"
+                      onClick={() => navigateToFolder(crumb.id)}
+                    >
+                      {crumb.name}
+                    </button>
+                    {index < breadcrumbs.length - 1 && <span className="drive__separator">/</span>}
+                  </span>
+                ))}
+              </div>
+            )}
+            <Button
+              variant="primary"
+              onClick={() => setIsCreateFolderModalOpen(true)}
+              className="drive__create-folder"
+            >
+              <FolderPlus size={18} />
+              <span>New Folder</span>
+            </Button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={handleFileInputChange}
+          />
+
+          {loading && <div className="drive__loading">Loading...</div>}
+          {error && <div className="drive__error">Error: {error}</div>}
+
+          {!loading && !error && (
+            <>
+              {filteredFiles.length === 0 ? (
+                <div className="drive__empty">
+                  <p>No files here. Upload files or create a folder to get started.</p>
+                </div>
+              ) : (
+                <>
+                  {viewMode === 'grid' ? (
+                    <FileGrid
+                      files={filteredFiles}
+                      onFileDoubleClick={handleFileDoubleClick}
+                      onFileRename={handleFileRename}
+                      onFileDelete={handleFileDelete}
+                      onFileDownload={handleFileDownload}
+                    />
+                  ) : (
+                    <FileList
+                      files={filteredFiles}
+                      onFileDoubleClick={handleFileDoubleClick}
+                      onFileRename={handleFileRename}
+                      onFileDelete={handleFileDelete}
+                      onFileDownload={handleFileDownload}
+                    />
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </DropZone>
+
+      <RenameModal
+        isOpen={isRenameModalOpen}
+        currentName={selectedFile?.name || ''}
+        onClose={() => {
+          setIsRenameModalOpen(false);
+          setSelectedFile(null);
+        }}
+        onConfirm={handleRenameConfirm}
+      />
+
+      <CreateFolderModal
+        isOpen={isCreateFolderModalOpen}
+        onClose={() => setIsCreateFolderModalOpen(false)}
+        onConfirm={handleCreateFolder}
+      />
+
+      <PhotoPreview
+        isOpen={isPhotoPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsPhotoPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+    </Layout>
+  );
+}
+
