@@ -1,4 +1,4 @@
-import { useState, MouseEvent } from 'react';
+import { useState, type MouseEvent } from 'react';
 import {
   Folder,
   File as FileIcon,
@@ -69,7 +69,7 @@ export function FileItem({
           {isImageFile(file) && file.thumbnailUrl ? (
             <img src={file.thumbnailUrl} alt={file.name} className="file-item__thumbnail" />
           ) : (
-            <Icon size={viewMode === 'grid' ? 48 : 24} />
+            <Icon size={viewMode === 'grid' ? 64 : 32} />
           )}
         </div>
         <div className="file-item__info">
@@ -81,7 +81,7 @@ export function FileItem({
           )}
         </div>
         <button className="file-item__menu" onClick={handleContextMenu}>
-          <MoreVertical size={16} />
+          <MoreVertical size={14} />
         </button>
       </div>
       {contextMenu && (
