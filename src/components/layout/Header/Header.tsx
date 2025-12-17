@@ -1,15 +1,14 @@
-import { useState, ChangeEvent } from 'react';
-import { Search, Upload, Grid, List } from 'lucide-react';
+import { useState, type ChangeEvent } from 'react';
+import { Search, Grid, List, Cloud } from 'lucide-react';
 import './_Header.scss';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
-  onUpload: () => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
 }
 
-export function Header({ onSearch, onUpload, viewMode, onViewModeChange }: HeaderProps) {
+export function Header({ onSearch, viewMode, onViewModeChange }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -20,6 +19,10 @@ export function Header({ onSearch, onUpload, viewMode, onViewModeChange }: Heade
 
   return (
     <header className="header">
+      <div className="header__brand">
+        <Cloud size={24} />
+        <span>LivingCloud</span>
+      </div>
       <div className="header__search">
         <Search size={20} className="header__search-icon" />
         <input
@@ -31,10 +34,6 @@ export function Header({ onSearch, onUpload, viewMode, onViewModeChange }: Heade
         />
       </div>
       <div className="header__actions">
-        <button className="header__button" onClick={onUpload} title="Upload files">
-          <Upload size={20} />
-          <span>Upload</span>
-        </button>
         <div className="header__view-toggle">
           <button
             className={`header__view-button ${viewMode === 'grid' ? 'header__view-button--active' : ''}`}

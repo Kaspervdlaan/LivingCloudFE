@@ -8,7 +8,7 @@ import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { RenameModal } from '../../components/common/RenameModal/RenameModal';
 import { CreateFolderModal } from '../../components/common/CreateFolderModal/CreateFolderModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus } from 'lucide-react';
+import { FolderPlus, Upload } from 'lucide-react';
 import type { File } from '../../types/file';
 import { isImageFile } from '../../utils/fileUtils';
 import './_Drive.scss';
@@ -25,6 +25,7 @@ export function Drive() {
     renameFile,
     currentFolderId,
     navigateToFolder,
+    getCurrentFolderName,
   } = useFilesStore();
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -149,36 +150,31 @@ export function Drive() {
   return (
     <Layout
       onSearch={handleSearch}
-      onUpload={handleUploadClick}
       viewMode={viewMode}
       onViewModeChange={setViewMode}
     >
       <DropZone>
         <div className="drive">
           <div className="drive__toolbar">
-            {breadcrumbs.length > 0 && (
-              <div className="drive__breadcrumbs">
-                {breadcrumbs.map((crumb, index) => (
-                  <span key={crumb.id || 'root'}>
-                    <button
-                      className="drive__breadcrumb"
-                      onClick={() => navigateToFolder(crumb.id)}
-                    >
-                      {crumb.name}
-                    </button>
-                    {index < breadcrumbs.length - 1 && <span className="drive__separator">/</span>}
-                  </span>
-                ))}
-              </div>
-            )}
-            <Button
-              variant="primary"
-              onClick={() => setIsCreateFolderModalOpen(true)}
-              className="drive__create-folder"
-            >
-              <FolderPlus size={18} />
-              <span>New Folder</span>
-            </Button>
+            <div className="drive__folder-name">{getCurrentFolderName()}</div>
+            <div className="drive__actions">
+              <Button
+                variant="primary"
+                onClick={handleUploadClick}
+                className="drive__upload"
+              >
+                <Upload size={18} />
+                <span>Upload</span>
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => setIsCreateFolderModalOpen(true)}
+                className="drive__create-folder"
+              >
+                <FolderPlus size={18} />
+                <span>New Folder</span>
+              </Button>
+            </div>
           </div>
 
           <input

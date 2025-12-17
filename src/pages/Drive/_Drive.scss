@@ -12,6 +12,12 @@
   border-bottom: 1px solid $border;
 }
 
+.drive__folder-name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
 .drive__breadcrumbs {
   display: flex;
   align-items: center;
@@ -38,6 +44,13 @@
   color: $text-secondary;
 }
 
+.drive__actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.drive__upload,
 .drive__create-folder {
   display: flex;
   align-items: center;

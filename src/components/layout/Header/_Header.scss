@@ -9,6 +9,21 @@
   gap: $spacing-lg;
 }
 
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  min-width: 140px;
+  
+  svg {
+    color: $accent-500;
+    flex-shrink: 0;
+  }
+}
+
 .header__search {
   flex: 1;
   max-width: 600px;
