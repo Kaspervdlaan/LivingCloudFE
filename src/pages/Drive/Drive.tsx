@@ -5,7 +5,6 @@ import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
 import { DropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
-import { RenameModal } from '../../components/common/RenameModal/RenameModal';
 import { CreateFolderModal } from '../../components/common/CreateFolderModal/CreateFolderModal';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload } from 'lucide-react';
@@ -32,7 +31,6 @@ export function Drive() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,18 +85,6 @@ export function Drive() {
   const handleDoubleClickFileName = async (file: File, newName: string) => {
     if (newName && newName !== file.name) {
       await renameFile(file.id, newName);
-    }
-  };
-
-  const handleFileRename = (file: File) => {
-    setSelectedFile(file);
-    setIsRenameModalOpen(true);
-  };
-
-  const handleRenameConfirm = async (newName: string) => {
-    if (selectedFile) {
-      await renameFile(selectedFile.id, newName);
-      setSelectedFile(null);
     }
   };
 
@@ -207,7 +193,6 @@ export function Drive() {
                       files={filteredFiles}
                       onFileDoubleClick={handleFileDoubleClick}
                       onDoubleClickFileName={handleDoubleClickFileName}
-                      onFileRename={handleFileRename}
                       onFileDelete={handleFileDelete}
                       onFileDownload={handleFileDownload}
                     />
@@ -216,7 +201,6 @@ export function Drive() {
                       files={filteredFiles}
                       onFileDoubleClick={handleFileDoubleClick}
                       onDoubleClickFileName={handleDoubleClickFileName}
-                      onFileRename={handleFileRename}
                       onFileDelete={handleFileDelete}
                       onFileDownload={handleFileDownload}
                     />
@@ -227,16 +211,6 @@ export function Drive() {
           )}
         </div>
       </DropZone>
-
-      <RenameModal
-        isOpen={isRenameModalOpen}
-        currentName={selectedFile?.name || ''}
-        onClose={() => {
-          setIsRenameModalOpen(false);
-          setSelectedFile(null);
-        }}
-        onConfirm={handleRenameConfirm}
-      />
 
       <CreateFolderModal
         isOpen={isCreateFolderModalOpen}

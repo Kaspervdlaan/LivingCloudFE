@@ -21,7 +21,6 @@ interface FileItemProps {
   file: File;
   onDoubleClick?: () => void;
   onDoubleClickFileName?: (file: File, newName: string) => void;
-  onRename?: () => void;
   onDelete?: () => void;
   onDownload?: () => void;
   viewMode?: 'grid' | 'list';
@@ -41,7 +40,6 @@ export function FileItem({
   file,
   onDoubleClick,
   onDoubleClickFileName,
-  onRename,
   onDelete,
   onDownload,
   viewMode = 'grid',
@@ -78,6 +76,12 @@ export function FileItem({
     e.stopPropagation();
     setIsRenaming(true);
     setFileName(file.name);
+  };
+
+  const handleRenameFromContextMenu = () => {
+    setIsRenaming(true);
+    setFileName(file.name);
+    handleCloseContextMenu();
   };
 
   const handleSaveRename = () => {
@@ -148,14 +152,12 @@ export function FileItem({
       </div>
       {contextMenu && (
         <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={handleCloseContextMenu}>
-          {onRename && (
-            <ContextMenuItem onClick={() => { onRename(); handleCloseContextMenu(); }}>
-              <span className="context-menu__item-content">
-                <Edit size={16} />
-                <span>Rename</span>
-              </span>
-            </ContextMenuItem>
-          )}
+          <ContextMenuItem onClick={handleRenameFromContextMenu}>
+            <span className="context-menu__item-content">
+              <Edit size={16} />
+              <span>Rename</span>
+            </span>
+          </ContextMenuItem>
           {onDownload && file.type === 'file' && (
             <ContextMenuItem onClick={() => { onDownload(); handleCloseContextMenu(); }}>
               <span className="context-menu__item-content">

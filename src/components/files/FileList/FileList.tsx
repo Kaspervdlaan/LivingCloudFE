@@ -6,7 +6,6 @@ interface FileListProps {
   files: File[];
   onFileDoubleClick: (file: File) => void;
   onDoubleClickFileName: (file: File, newName: string) => void;
-  onFileRename: (file: File) => void;
   onFileDelete: (file: File) => void;
   onFileDownload: (file: File) => void;
 }
@@ -15,7 +14,6 @@ export function FileList({
   files,
   onFileDoubleClick,
   onDoubleClickFileName,
-  onFileRename,
   onFileDelete,
   onFileDownload,
 }: FileListProps) {
@@ -28,7 +26,6 @@ export function FileList({
           viewMode="list"
           onDoubleClick={() => onFileDoubleClick(file)}
           onDoubleClickFileName={(f, newName) => onDoubleClickFileName(f, newName)}
-          onRename={() => onFileRename(file)}
           onDelete={() => onFileDelete(file)}
           onDownload={() => onFileDownload(file)}
         />
