@@ -6,13 +6,25 @@ import './_FolderTree.scss';
 
 interface FolderTreeProps {
   currentFolderId?: string;
+  onFileDrop?: (draggedFileId: string, targetFolderId: string | undefined) => void;
+  onDropFiles?: (files: FileList, targetFolderId: string | undefined) => void;
+  onDragOver?: (folderId: string | undefined) => void;
+  onDragLeave?: () => void;
+  dragOverFolderId?: string | null;
 }
 
 interface FolderNode extends File {
   children?: FolderNode[];
 }
 
-export function FolderTree({ currentFolderId }: FolderTreeProps) {
+export function FolderTree({
+  currentFolderId,
+  onFileDrop,
+  onDropFiles,
+  onDragOver,
+  onDragLeave,
+  dragOverFolderId,
+}: FolderTreeProps) {
   const navigateToFolder = useFilesStore((state) => state.navigateToFolder);
   const allFiles = useFilesStore((state) => state.allFiles);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
@@ -115,19 +127,87 @@ export function FolderTree({ currentFolderId }: FolderTreeProps) {
     navigateToFolder(folderId);
   };
 
+  const handleDragOver = (e: React.DragEvent, folderId: string | undefined) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if it's external files (from OS) or internal drag
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (hasFiles) {
+      e.dataTransfer.dropEffect = 'copy';
+    } else {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    
+    // Handle drag over - pass undefined for root, folderId for folders
+    if (folderId !== undefined) {
+      onDragOver?.(folderId);
+      // Auto-expand folder when dragging over it
+      if (!expandedFolders.has(folderId)) {
+        setExpandedFolders((prev) => new Set(prev).add(folderId));
+      }
+    } else {
+      // For root, pass undefined - will be converted to empty string in handler for tracking
+      onDragOver?.(undefined);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Check if we're actually leaving the folder item
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      onDragLeave?.();
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, folderId: string | undefined) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if it's external files (from OS) or internal drag
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    
+    if (hasFiles) {
+      // External files from Finder/OS - upload to this folder
+      // folderId can be undefined for root (My Drive)
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        onDropFiles?.(files, folderId);
+      }
+    } else {
+      // Internal drag - move file/folder to root (undefined = root)
+      // If folderId is undefined, move to root
+      const draggedFileId = e.dataTransfer.getData('text/plain');
+      
+      // Don't allow dropping a folder into itself
+      if (draggedFileId === folderId) {
+        return;
+      }
+      
+      // For root (undefined), pass undefined to move to root
+      // For folders, pass the folderId
+      onFileDrop?.(draggedFileId, folderId);
+    }
+    
+    onDragLeave?.();
+  };
+
   const renderFolder = (folder: FolderNode, level: number = 0) => {
     if (!folder || !folder.id) return null;
     
     const isExpanded = expandedFolders.has(folder.id);
     const isActive = currentFolderId === folder.id;
     const hasChildren = folder.children && folder.children.length > 0;
+    const isDragOver = dragOverFolderId === folder.id;
 
     return (
       <div key={folder.id} className="folder-tree__node">
         <div
-          className={`folder-tree__item ${isActive ? 'folder-tree__item--active' : ''}`}
+          className={`folder-tree__item ${isActive ? 'folder-tree__item--active' : ''} ${isDragOver ? 'folder-tree__item--drag-over' : ''}`}
           style={{ paddingLeft: `${level * 16 + 8}px` }}
           onClick={() => handleFolderClick(folder.id)}
+          onDragOver={(e) => handleDragOver(e, folder.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, folder.id)}
         >
           {hasChildren ? (
             <button
@@ -156,11 +236,18 @@ export function FolderTree({ currentFolderId }: FolderTreeProps) {
     );
   };
 
+  // Check if root is being dragged over
+  // We use an empty string to represent root in dragOverFolderId
+  const isRootDragOver = dragOverFolderId === '';
+
   return (
     <div className="folder-tree">
       <div
-        className={`folder-tree__item ${!currentFolderId ? 'folder-tree__item--active' : ''}`}
+        className={`folder-tree__item ${!currentFolderId ? 'folder-tree__item--active' : ''} ${isRootDragOver ? 'folder-tree__item--drag-over' : ''}`}
         onClick={() => handleFolderClick(undefined)}
+        onDragOver={(e) => handleDragOver(e, undefined)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, undefined)}
       >
         <Folder size={16} className="folder-tree__icon" />
         <span className="folder-tree__name">My Drive</span>

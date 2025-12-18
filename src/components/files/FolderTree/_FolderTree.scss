@@ -32,6 +32,12 @@
     color: $accent-600;
     font-weight: $font-weight-medium;
   }
+  
+  &--drag-over {
+    background-color: rgba($accent-500, 0.15);
+    border: 2px dashed $accent-500;
+    border-radius: $radius-sm;
+  }
 }
 
 .folder-tree__toggle {

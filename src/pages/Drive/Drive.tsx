@@ -138,39 +138,43 @@ export function Drive() {
   };
 
   // Helper function to check if a folder is a descendant of another folder
-  const isDescendant = (folderId: string, ancestorId: string): boolean => {
+  const isDescendant = (folderId: string | undefined, ancestorId: string): boolean => {
+    if (!folderId) return false;
     const folder = getFileById(folderId);
     if (!folder || !folder.parentId) return false;
     if (folder.parentId === ancestorId) return true;
     return isDescendant(folder.parentId, ancestorId);
   };
 
-  const handleFileDrop = (draggedFileId: string, targetFolderId: string) => {
+  const handleFileDrop = (draggedFileId: string, targetFolderId: string | undefined) => {
     // Don't allow dropping a file/folder into itself
     if (draggedFileId === targetFolderId) {
       return;
     }
 
-    // Don't allow dropping a folder into its own descendant
-    const draggedFile = getFileById(draggedFileId);
-    if (draggedFile?.type === 'folder' && isDescendant(targetFolderId, draggedFileId)) {
-      return;
+    // Don't allow dropping a folder into its own descendant (only if targetFolderId is defined)
+    if (targetFolderId) {
+      const draggedFile = getFileById(draggedFileId);
+      if (draggedFile?.type === 'folder' && isDescendant(targetFolderId, draggedFileId)) {
+        return;
+      }
     }
 
-    // Move the file/folder
+    // Move the file/folder (undefined = root level)
     moveFile(draggedFileId, targetFolderId);
     setDragOverFolderId(null);
   };
 
-  const handleDragOver = (folderId: string) => {
-    setDragOverFolderId(folderId);
+  const handleDragOver = (folderId: string | undefined) => {
+    // Empty string represents root, undefined/null means not dragging over anything
+    setDragOverFolderId(folderId || '');
   };
 
   const handleDragLeave = () => {
     setDragOverFolderId(null);
   };
 
-  const handleDropFiles = async (files: FileList, targetFolderId: string) => {
+  const handleDropFiles = async (files: FileList, targetFolderId: string | undefined) => {
     await uploadFiles(files, targetFolderId);
     setDragOverFolderId(null);
   };
@@ -270,6 +274,11 @@ export function Drive() {
       onSearch={handleSearch}
       viewMode={viewMode}
       onViewModeChange={setViewMode}
+      onFileDrop={handleFileDrop}
+      onDropFiles={handleDropFiles}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      dragOverFolderId={dragOverFolderId}
     >
       <DropZone>
         <DriveContent />

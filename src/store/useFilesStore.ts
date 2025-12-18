@@ -17,7 +17,7 @@ interface FilesState {
   createFolder: (request: CreateFolderRequest) => void;
   deleteFile: (fileId: string) => void;
   renameFile: (fileId: string, newName: string) => void;
-  moveFile: (fileId: string, destinationId: string) => void;
+  moveFile: (fileId: string, destinationId: string | undefined) => void;
   copyFile: (fileId: string, destinationId: string) => void;
   navigateToFolder: (folderId: string | undefined) => void;
   refreshFiles: () => void;
@@ -230,7 +230,7 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     }
   },
 
-  moveFile: (fileId: string, destinationId: string) => {
+  moveFile: (fileId: string, destinationId: string | undefined) => {
     set({ loading: true, error: null });
     
     try {
