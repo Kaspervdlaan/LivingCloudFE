@@ -84,6 +84,12 @@ export function Drive() {
     }
   };
 
+  const handleDoubleClickFileName = async (file: File, newName: string) => {
+    if (newName && newName !== file.name) {
+      await renameFile(file.id, newName);
+    }
+  };
+
   const handleFileRename = (file: File) => {
     setSelectedFile(file);
     setIsRenameModalOpen(true);
@@ -200,6 +206,7 @@ export function Drive() {
                     <FileGrid
                       files={filteredFiles}
                       onFileDoubleClick={handleFileDoubleClick}
+                      onDoubleClickFileName={handleDoubleClickFileName}
                       onFileRename={handleFileRename}
                       onFileDelete={handleFileDelete}
                       onFileDownload={handleFileDownload}
@@ -208,6 +215,7 @@ export function Drive() {
                     <FileList
                       files={filteredFiles}
                       onFileDoubleClick={handleFileDoubleClick}
+                      onDoubleClickFileName={handleDoubleClickFileName}
                       onFileRename={handleFileRename}
                       onFileDelete={handleFileDelete}
                       onFileDownload={handleFileDownload}

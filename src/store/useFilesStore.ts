@@ -23,6 +23,7 @@ interface FilesState {
   refreshFiles: () => void;
   getAllFolders: () => File[];
   getFileById: (fileId: string) => File | undefined;
+  getCurrentFolderName: () => string;
 }
 
 // Initialize with sample data
