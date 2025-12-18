@@ -3,17 +3,16 @@
 
 .file-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: $spacing-sm;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   padding: $spacing-md;
   align-items: start;
   
   @include respond-to(md) {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
   
   @include respond-to(lg) {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
