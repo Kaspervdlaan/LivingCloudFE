@@ -8,6 +8,12 @@ interface FileListProps {
   onDoubleClickFileName: (file: File, newName: string) => void;
   onFileDelete: (file: File) => void;
   onFileDownload: (file: File) => void;
+  onFileDrop?: (draggedFileId: string, targetFolderId: string) => void;
+  onDropFiles?: (files: FileList, targetFolderId: string) => void;
+  onDragOver?: (folderId: string) => void;
+  onDragLeave?: () => void;
+  onDropComplete?: () => void;
+  dragOverFolderId?: string | null;
 }
 
 export function FileList({
@@ -16,6 +22,12 @@ export function FileList({
   onDoubleClickFileName,
   onFileDelete,
   onFileDownload,
+  onFileDrop,
+  onDropFiles,
+  onDragOver,
+  onDragLeave,
+  onDropComplete,
+  dragOverFolderId,
 }: FileListProps) {
   return (
     <div className="file-list">
@@ -28,6 +40,12 @@ export function FileList({
           onDoubleClickFileName={(f, newName) => onDoubleClickFileName(f, newName)}
           onDelete={() => onFileDelete(file)}
           onDownload={() => onFileDownload(file)}
+          onDrop={onFileDrop}
+          onDropFiles={onDropFiles}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDropComplete={onDropComplete}
+          isDragOver={dragOverFolderId === file.id}
         />
       ))}
     </div>

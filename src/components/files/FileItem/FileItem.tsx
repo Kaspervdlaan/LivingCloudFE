@@ -23,6 +23,12 @@ interface FileItemProps {
   onDoubleClickFileName?: (file: File, newName: string) => void;
   onDelete?: () => void;
   onDownload?: () => void;
+  onDrop?: (draggedFileId: string, targetFolderId: string) => void;
+  onDropFiles?: (files: FileList, targetFolderId: string) => void;
+  onDragOver?: (folderId: string) => void;
+  onDragLeave?: () => void;
+  onDropComplete?: () => void;
+  isDragOver?: boolean;
   viewMode?: 'grid' | 'list';
 }
 
@@ -42,11 +48,18 @@ export function FileItem({
   onDoubleClickFileName,
   onDelete,
   onDownload,
+  onDrop,
+  onDropFiles,
+  onDragOver,
+  onDragLeave,
+  onDropComplete,
+  isDragOver,
   viewMode = 'grid',
 }: FileItemProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [fileName, setFileName] = useState(file.name);
+  const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Update fileName when file.name changes (e.g., after rename from context menu)
@@ -110,12 +123,100 @@ export function FileItem({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    // Don't allow dragging while renaming
+    if (isRenaming) {
+      e.preventDefault();
+      return;
+    }
+    setIsDragging(true);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', file.id);
+    // Create a drag image
+    e.dataTransfer.setDragImage(e.currentTarget, 0, 0);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    // Only folders can be drop targets
+    if (file.type !== 'folder') return;
+    
+    // Don't allow dropping while renaming
+    if (isRenaming) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if it's external files (from OS) or internal drag
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (hasFiles) {
+      // External files - allow drop
+      e.dataTransfer.dropEffect = 'copy';
+    } else {
+      // Internal drag - move effect
+      e.dataTransfer.dropEffect = 'move';
+    }
+    
+    onDragOver?.(file.id);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only folders can be drop targets
+    if (file.type !== 'folder') return;
+    
+    // Check if we're actually leaving the folder element
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      onDragLeave?.();
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    // Only folders can be drop targets
+    if (file.type !== 'folder') return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if it's external files (from OS) or internal drag
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    
+    if (hasFiles) {
+      // External files from Finder/OS - upload to this folder
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        onDropFiles?.(files, file.id);
+      }
+    } else {
+      // Internal drag - move file/folder
+      const draggedFileId = e.dataTransfer.getData('text/plain');
+      
+      // Don't allow dropping a folder into itself
+      if (draggedFileId === file.id) {
+        return;
+      }
+      
+      onDrop?.(draggedFileId, file.id);
+    }
+    
+    onDragLeave?.();
+    onDropComplete?.();
+  };
+
   const Icon = iconMap[getFileIconName(file)] || FileIcon;
 
   return (
     <>
       <div
-        className={`file-item file-item--${viewMode}`}
+        className={`file-item file-item--${viewMode} ${isDragging ? 'file-item--dragging' : ''} ${isDragOver ? 'file-item--drag-over' : ''}`}
+        draggable={!isRenaming}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onContextMenu={handleContextMenu}
       >
         <div className="file-item__icon" onDoubleClick={onDoubleClick}>

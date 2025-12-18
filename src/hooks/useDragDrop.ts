@@ -11,12 +11,22 @@ export function useDragDrop({ onDrop, onDragOver, onDragLeave }: UseDragDropOpti
   const [dragTargetId, setDragTargetId] = useState<string | undefined>();
 
   const handleDragEnter = useCallback((e: DragEvent) => {
+    // Only handle external file drags (from OS), not internal drags
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (!hasFiles) {
+      return; // Ignore internal drags
+    }
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
 
   const handleDragOver = useCallback((e: DragEvent, targetId?: string) => {
+    // Only handle external file drags (from OS), not internal drags
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (!hasFiles) {
+      return; // Ignore internal drags
+    }
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -25,6 +35,12 @@ export function useDragDrop({ onDrop, onDragOver, onDragLeave }: UseDragDropOpti
   }, [onDragOver]);
 
   const handleDragLeave = useCallback((e: DragEvent) => {
+    // Only handle external file drags (from OS), not internal drags
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (!hasFiles) {
+      return; // Ignore internal drags
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     // Only set dragging to false if we're leaving the drop zone entirely
@@ -36,6 +52,12 @@ export function useDragDrop({ onDrop, onDragOver, onDragLeave }: UseDragDropOpti
   }, [onDragLeave]);
 
   const handleDrop = useCallback((e: DragEvent, targetId?: string) => {
+    // Only handle external file drags (from OS), not internal drags
+    const hasFiles = e.dataTransfer.types.includes('Files');
+    if (!hasFiles) {
+      return; // Ignore internal drags - they're handled by FileItem
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -47,6 +69,11 @@ export function useDragDrop({ onDrop, onDragOver, onDragLeave }: UseDragDropOpti
     }
   }, [onDrop]);
 
+  const resetDragging = useCallback(() => {
+    setIsDragging(false);
+    setDragTargetId(undefined);
+  }, []);
+
   return {
     isDragging,
     dragTargetId,
@@ -54,6 +81,7 @@ export function useDragDrop({ onDrop, onDragOver, onDragLeave }: UseDragDropOpti
     handleDragOver,
     handleDragLeave,
     handleDrop,
+    resetDragging,
   };
 }
 

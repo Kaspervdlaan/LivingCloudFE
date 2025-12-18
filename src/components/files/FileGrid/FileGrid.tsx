@@ -8,6 +8,12 @@ interface FileGridProps {
   onDoubleClickFileName: (file: File, newName: string) => void;
   onFileDelete: (file: File) => void;
   onFileDownload: (file: File) => void;
+  onFileDrop?: (draggedFileId: string, targetFolderId: string) => void;
+  onDropFiles?: (files: FileList, targetFolderId: string) => void;
+  onDragOver?: (folderId: string) => void;
+  onDragLeave?: () => void;
+  onDropComplete?: () => void;
+  dragOverFolderId?: string | null;
 }
 
 export function FileGrid({
@@ -16,6 +22,12 @@ export function FileGrid({
   onDoubleClickFileName,
   onFileDelete,
   onFileDownload,
+  onFileDrop,
+  onDropFiles,
+  onDragOver,
+  onDragLeave,
+  onDropComplete,
+  dragOverFolderId,
 }: FileGridProps) {
   return (
     <div className="file-grid">
@@ -28,6 +40,12 @@ export function FileGrid({
           onDoubleClickFileName={(f, newName) => onDoubleClickFileName(f, newName)}
           onDelete={() => onFileDelete(file)}
           onDownload={() => onFileDownload(file)}
+          onDrop={onFileDrop}
+          onDropFiles={onDropFiles}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDropComplete={onDropComplete}
+          isDragOver={dragOverFolderId === file.id}
         />
       ))}
     </div>

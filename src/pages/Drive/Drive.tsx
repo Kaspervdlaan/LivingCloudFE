@@ -3,7 +3,7 @@ import { useFilesStore } from '../../store/useFilesStore';
 import { Layout } from '../../components/layout/Layout/Layout';
 import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
-import { DropZone } from '../../components/files/DropZone/DropZone';
+import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { CreateFolderModal } from '../../components/common/CreateFolderModal/CreateFolderModal';
 import { Button } from '../../components/common/Button/Button';
@@ -22,9 +22,11 @@ export function Drive() {
     createFolder,
     deleteFile,
     renameFile,
+    moveFile,
     currentFolderId,
     navigateToFolder,
     getCurrentFolderName,
+    getFileById,
   } = useFilesStore();
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -33,6 +35,7 @@ export function Drive() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load files on mount and when folder changes
@@ -134,6 +137,129 @@ export function Drive() {
     await createFolder({ name });
   };
 
+  // Helper function to check if a folder is a descendant of another folder
+  const isDescendant = (folderId: string, ancestorId: string): boolean => {
+    const folder = getFileById(folderId);
+    if (!folder || !folder.parentId) return false;
+    if (folder.parentId === ancestorId) return true;
+    return isDescendant(folder.parentId, ancestorId);
+  };
+
+  const handleFileDrop = (draggedFileId: string, targetFolderId: string) => {
+    // Don't allow dropping a file/folder into itself
+    if (draggedFileId === targetFolderId) {
+      return;
+    }
+
+    // Don't allow dropping a folder into its own descendant
+    const draggedFile = getFileById(draggedFileId);
+    if (draggedFile?.type === 'folder' && isDescendant(targetFolderId, draggedFileId)) {
+      return;
+    }
+
+    // Move the file/folder
+    moveFile(draggedFileId, targetFolderId);
+    setDragOverFolderId(null);
+  };
+
+  const handleDragOver = (folderId: string) => {
+    setDragOverFolderId(folderId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverFolderId(null);
+  };
+
+  const handleDropFiles = async (files: FileList, targetFolderId: string) => {
+    await uploadFiles(files, targetFolderId);
+    setDragOverFolderId(null);
+  };
+
+  // Inner component to access DropZone context
+  function DriveContent() {
+    const dropZone = useDropZone();
+    const resetDragging = dropZone?.resetDragging || (() => {});
+
+    return (
+      <div className="drive">
+        <div className="drive__toolbar">
+          <div className="drive__folder-name">{getCurrentFolderName()}</div>
+          <div className="drive__actions">
+            <Button
+              variant="primary"
+              onClick={handleUploadClick}
+              className="drive__upload"
+            >
+              <Upload size={18} />
+              <span>Upload</span>
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => setIsCreateFolderModalOpen(true)}
+              className="drive__create-folder"
+            >
+              <FolderPlus size={18} />
+              <span>New Folder</span>
+            </Button>
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFileInputChange}
+        />
+
+        {loading && <div className="drive__loading">Loading...</div>}
+        {error && <div className="drive__error">Error: {error}</div>}
+
+        {!loading && !error && (
+          <>
+            {filteredFiles.length === 0 ? (
+              <div className="drive__empty">
+                <p>No files here. Upload files or create a folder to get started.</p>
+              </div>
+            ) : (
+              <>
+                {viewMode === 'grid' ? (
+                  <FileGrid
+                    files={filteredFiles}
+                    onFileDoubleClick={handleFileDoubleClick}
+                    onDoubleClickFileName={handleDoubleClickFileName}
+                    onFileDelete={handleFileDelete}
+                    onFileDownload={handleFileDownload}
+                    onFileDrop={handleFileDrop}
+                    onDropFiles={handleDropFiles}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDropComplete={resetDragging}
+                    dragOverFolderId={dragOverFolderId}
+                  />
+                ) : (
+                  <FileList
+                    files={filteredFiles}
+                    onFileDoubleClick={handleFileDoubleClick}
+                    onDoubleClickFileName={handleDoubleClickFileName}
+                    onFileDelete={handleFileDelete}
+                    onFileDownload={handleFileDownload}
+                    onFileDrop={handleFileDrop}
+                    onDropFiles={handleDropFiles}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDropComplete={resetDragging}
+                    dragOverFolderId={dragOverFolderId}
+                  />
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
   const breadcrumbs = [];
   if (currentFolderId) {
     breadcrumbs.push({ id: undefined, name: 'My Drive' });
@@ -146,70 +272,7 @@ export function Drive() {
       onViewModeChange={setViewMode}
     >
       <DropZone>
-        <div className="drive">
-          <div className="drive__toolbar">
-            <div className="drive__folder-name">{getCurrentFolderName()}</div>
-            <div className="drive__actions">
-              <Button
-                variant="primary"
-                onClick={handleUploadClick}
-                className="drive__upload"
-              >
-                <Upload size={18} />
-                <span>Upload</span>
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => setIsCreateFolderModalOpen(true)}
-                className="drive__create-folder"
-              >
-                <FolderPlus size={18} />
-                <span>New Folder</span>
-              </Button>
-            </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            onChange={handleFileInputChange}
-          />
-
-          {loading && <div className="drive__loading">Loading...</div>}
-          {error && <div className="drive__error">Error: {error}</div>}
-
-          {!loading && !error && (
-            <>
-              {filteredFiles.length === 0 ? (
-                <div className="drive__empty">
-                  <p>No files here. Upload files or create a folder to get started.</p>
-                </div>
-              ) : (
-                <>
-                  {viewMode === 'grid' ? (
-                    <FileGrid
-                      files={filteredFiles}
-                      onFileDoubleClick={handleFileDoubleClick}
-                      onDoubleClickFileName={handleDoubleClickFileName}
-                      onFileDelete={handleFileDelete}
-                      onFileDownload={handleFileDownload}
-                    />
-                  ) : (
-                    <FileList
-                      files={filteredFiles}
-                      onFileDoubleClick={handleFileDoubleClick}
-                      onDoubleClickFileName={handleDoubleClickFileName}
-                      onFileDelete={handleFileDelete}
-                      onFileDownload={handleFileDownload}
-                    />
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </div>
+        <DriveContent />
       </DropZone>
 
       <CreateFolderModal

@@ -234,21 +234,21 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      set((currentState) => {
-        const updatedAllFiles = currentState.allFiles.map((f) =>
-          f.id === fileId ? { ...f, parentId: destinationId, updatedAt: new Date().toISOString() } : f
-        );
-        const updatedFiles = currentState.files.filter((f) => f.id !== fileId);
-        
-        return {
-          files: updatedFiles,
-          allFiles: updatedAllFiles,
-          loading: false,
-        };
+      // Update allFiles with new parentId
+      const state = get();
+      const updatedAllFiles = state.allFiles.map((f) =>
+        f.id === fileId ? { ...f, parentId: destinationId, updatedAt: new Date().toISOString() } : f
+      );
+      
+      // Update state
+      set({
+        allFiles: updatedAllFiles,
+        loading: false,
       });
       
-      // Reload files for current folder
-      get().loadFiles(get().currentFolderId);
+      // Reload files for current folder to reflect the change
+      const currentState = get();
+      currentState.loadFiles(currentState.currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to move file', loading: false });
     }
