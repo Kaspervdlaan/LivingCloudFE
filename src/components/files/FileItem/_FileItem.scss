@@ -162,6 +162,16 @@
     overflow-wrap: break-word;
     hyphens: auto;
     
+    &::selection {
+      background-color: $accent-500;
+      color: $surface;
+    }
+    
+    &::-moz-selection {
+      background-color: $accent-500;
+      color: $surface;
+    }
+    
     .file-item--grid & {
       text-align: center;
       max-height: none;
