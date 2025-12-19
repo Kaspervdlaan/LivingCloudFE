@@ -249,7 +249,7 @@ export function Drive() {
           </div>
           <div className="drive__actions">
             <Button
-              variant="primary"
+              variant="secondary"
               onClick={handleUploadClick}
               className="drive__upload"
             >
@@ -257,7 +257,7 @@ export function Drive() {
               <span>Upload</span>
             </Button>
             <Button
-              variant="primary"
+              variant="secondary"
               onClick={handleCreateFolderFromContext}
               className="drive__create-folder"
             >

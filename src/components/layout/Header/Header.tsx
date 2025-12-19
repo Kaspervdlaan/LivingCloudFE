@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { Search, Grid, List, Cloud, Palette, ChevronDown, LogOut, User, Menu, X } from 'lucide-react';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { useTheme, type Theme } from '../../../contexts/ThemeContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './_Header.scss';
@@ -44,7 +44,7 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
     };
   }, [isThemeDropdownOpen]);
 
-  const handleThemeSelect = (selectedTheme: 'hacker' | 'minimal') => {
+  const handleThemeSelect = (selectedTheme: Theme) => {
     setTheme(selectedTheme);
     setIsThemeDropdownOpen(false);
   };
@@ -54,9 +54,13 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
     navigate('/');
   };
 
-  const themeNames = {
+  const themeNames: Record<Theme, string> = {
     hacker: 'Hacker Terminal',
     minimal: 'Minimal & Slick',
+    dark: 'Dark Mode',
+    ocean: 'Ocean Breeze',
+    sunset: 'Sunset Warmth',
+    forest: 'Forest Green',
   };
 
   return (
@@ -114,20 +118,16 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
           </button>
           {isThemeDropdownOpen && (
             <div className="header__theme-dropdown">
-              <button
-                className={`header__theme-option ${theme === 'hacker' ? 'header__theme-option--active' : ''}`}
-                onClick={() => handleThemeSelect('hacker')}
-              >
-                {themeNames.hacker}
-                {theme === 'hacker' && <span className="header__theme-check">✓</span>}
-              </button>
-              <button
-                className={`header__theme-option ${theme === 'minimal' ? 'header__theme-option--active' : ''}`}
-                onClick={() => handleThemeSelect('minimal')}
-              >
-                {themeNames.minimal}
-                {theme === 'minimal' && <span className="header__theme-check">✓</span>}
-              </button>
+              {(Object.keys(themeNames) as Theme[]).map((themeKey) => (
+                <button
+                  key={themeKey}
+                  className={`header__theme-option ${theme === themeKey ? 'header__theme-option--active' : ''}`}
+                  onClick={() => handleThemeSelect(themeKey)}
+                >
+                  {themeNames[themeKey]}
+                  {theme === themeKey && <span className="header__theme-check">✓</span>}
+                </button>
+              ))}
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-export type Theme = 'hacker' | 'minimal';
+export type Theme = 'hacker' | 'minimal' | 'dark' | 'ocean' | 'sunset' | 'forest';
 
 interface ThemeContextType {
   theme: Theme;
@@ -11,7 +11,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'drive-theme';
-const DEFAULT_THEME: Theme = 'hacker';
+const DEFAULT_THEME: Theme = 'minimal';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -22,7 +22,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // Load theme from localStorage on mount
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-      if (stored === 'hacker' || stored === 'minimal') {
+      const validThemes: Theme[] = ['hacker', 'minimal', 'dark', 'ocean', 'sunset', 'forest'];
+      if (stored && validThemes.includes(stored)) {
         return stored;
       }
     }
@@ -41,7 +42,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   };
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'hacker' ? 'minimal' : 'hacker'));
+    const themes: Theme[] = ['minimal', 'dark', 'ocean', 'sunset', 'forest', 'hacker'];
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setThemeState(themes[nextIndex]);
   };
 
   return (
