@@ -5,11 +5,12 @@ import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
 import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
+import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft } from 'lucide-react';
 import type { File } from '../../types/file';
-import { isImageFile } from '../../utils/fileUtils';
+import { isImageFile, isVideoFile } from '../../utils/fileUtils';
 import './_Drive.scss';
 
 export function Drive() {
@@ -46,6 +47,7 @@ export function Drive() {
   const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
+  const [isVideoPreviewOpen, setIsVideoPreviewOpen] = useState(false);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
@@ -117,6 +119,9 @@ export function Drive() {
     } else if (isImageFile(file)) {
       setSelectedFile(file);
       setIsPhotoPreviewOpen(true);
+    } else if (isVideoFile(file)) {
+      setSelectedFile(file);
+      setIsVideoPreviewOpen(true);
     }
   };
 
@@ -372,6 +377,15 @@ export function Drive() {
         files={files}
         onClose={() => {
           setIsPhotoPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <VideoPreview
+        isOpen={isVideoPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsVideoPreviewOpen(false);
           setSelectedFile(null);
         }}
       />

@@ -19,6 +19,27 @@ export function isImageFile(file: { name?: string; mimeType?: string; extension?
   return false;
 }
 
+// Video file extensions
+const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'm4v'];
+const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
+
+export function isVideoFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return VIDEO_MIME_TYPES.includes(file.mimeType) || file.mimeType.startsWith('video/');
+  }
+  
+  if (file.extension) {
+    return VIDEO_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? VIDEO_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
 export function getFileExtension(filename: string): string {
   const parts = filename.split('.');
   return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
