@@ -30,6 +30,7 @@ interface FileItemProps {
   onDropComplete?: () => void;
   isDragOver?: boolean;
   viewMode?: 'grid' | 'list';
+  shouldStartRenaming?: boolean;
 }
 
 const iconMap: Record<string, any> = {
@@ -55,6 +56,7 @@ export function FileItem({
   onDropComplete,
   isDragOver,
   viewMode = 'grid',
+  shouldStartRenaming = false,
 }: FileItemProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -67,13 +69,36 @@ export function FileItem({
     setFileName(file.name);
   }, [file.name]);
 
+  // Auto-enter rename mode if shouldStartRenaming is true
+  useEffect(() => {
+    if (shouldStartRenaming && !isRenaming) {
+      setIsRenaming(true);
+      setFileName(file.name);
+    }
+  }, [shouldStartRenaming, isRenaming, file.name]);
+
   // Auto-focus and select text when entering rename mode
+  // Keep focus maintained, especially for newly created folders
   useEffect(() => {
     if (isRenaming && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+      const focusInput = () => {
+        if (inputRef.current && document.activeElement !== inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      };
+      // Focus immediately
+      focusInput();
+      // Also focus on next tick to handle any async rendering
+      setTimeout(focusInput, 0);
+      // Keep checking focus periodically while renaming (for newly created folders)
+      // This ensures the input stays focused until user presses Enter
+      if (shouldStartRenaming) {
+        const focusInterval = setInterval(focusInput, 100);
+        return () => clearInterval(focusInterval);
+      }
     }
-  }, [isRenaming]);
+  }, [isRenaming, shouldStartRenaming]);
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
@@ -116,9 +141,11 @@ export function FileItem({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
       handleSaveRename();
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      e.stopPropagation();
       handleCancelRename();
     }
   };
@@ -220,8 +247,12 @@ export function FileItem({
         onContextMenu={handleContextMenu}
       >
         <div className="file-item__icon" onDoubleClick={onDoubleClick}>
-          {isImageFile(file) && file.thumbnailUrl ? (
-            <img src={file.thumbnailUrl} alt={file.name} className="file-item__thumbnail" />
+          {isImageFile(file) && (file.thumbnailUrl || file.downloadUrl) ? (
+            <img 
+              src={file.thumbnailUrl || file.downloadUrl} 
+              alt={file.name} 
+              className="file-item__thumbnail"
+            />
           ) : (
             <Icon size={viewMode === 'grid' ? 64 : 32} />
           )}
@@ -234,7 +265,16 @@ export function FileItem({
               className="file-item__name file-item__name--editing"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              onBlur={handleSaveRename}
+              onBlur={(e) => {
+                // For newly created folders, don't save on blur - wait for Enter
+                // Only save on blur if it's not a newly created folder
+                if (!shouldStartRenaming) {
+                  handleSaveRename();
+                } else {
+                  // Keep focus if it's a newly created folder
+                  e.target.focus();
+                }
+              }}
               onKeyDown={handleKeyDown}
             />
           ) : (

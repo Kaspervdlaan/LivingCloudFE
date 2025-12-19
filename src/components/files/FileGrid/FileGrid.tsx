@@ -14,6 +14,7 @@ interface FileGridProps {
   onDragLeave?: () => void;
   onDropComplete?: () => void;
   dragOverFolderId?: string | null;
+  fileToRename?: string | null;
 }
 
 export function FileGrid({
@@ -28,6 +29,7 @@ export function FileGrid({
   onDragLeave,
   onDropComplete,
   dragOverFolderId,
+  fileToRename,
 }: FileGridProps) {
   return (
     <div className="file-grid">
@@ -46,6 +48,7 @@ export function FileGrid({
           onDragLeave={onDragLeave}
           onDropComplete={onDropComplete}
           isDragOver={dragOverFolderId === file.id}
+          shouldStartRenaming={fileToRename === file.id}
         />
       ))}
     </div>

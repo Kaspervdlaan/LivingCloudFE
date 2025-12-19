@@ -5,7 +5,7 @@ import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
 import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
-import { CreateFolderModal } from '../../components/common/CreateFolderModal/CreateFolderModal';
+import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload } from 'lucide-react';
 import type { File } from '../../types/file';
@@ -33,10 +33,12 @@ export function Drive() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [fileToRename, setFileToRename] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const driveContentRef = useRef<HTMLDivElement>(null);
 
   // Load files on mount and when folder changes
   useEffect(() => {
@@ -89,6 +91,10 @@ export function Drive() {
     if (newName && newName !== file.name) {
       await renameFile(file.id, newName);
     }
+    // Clear the rename trigger after rename is complete
+    if (fileToRename === file.id) {
+      setFileToRename(null);
+    }
   };
 
   const handleFileDelete = async (file: File) => {
@@ -133,8 +139,33 @@ export function Drive() {
     }
   };
 
-  const handleCreateFolder = async (name: string) => {
-    await createFolder({ name });
+  const handleCreateFolderFromContext = async () => {
+    setContextMenu(null);
+    const folderName = 'Newmap';
+    await createFolder({ name: folderName });
+    // Wait for files to update, then find the newly created folder
+    // Use a small delay to ensure the store has updated
+    const checkForNewFolder = () => {
+      const currentFiles = useFilesStore.getState().files;
+      const newFolder = currentFiles.find(f => f.name === folderName && f.type === 'folder');
+      if (newFolder) {
+        setFileToRename(newFolder.id);
+        // Don't clear automatically - let it stay focused until Enter is pressed
+      } else {
+        // Retry if folder not found yet
+        setTimeout(checkForNewFolder, 50);
+      }
+    };
+    setTimeout(checkForNewFolder, 100);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    // Only show context menu if clicking on empty space (not on a file item)
+    if ((e.target as HTMLElement).closest('.file-item')) {
+      return;
+    }
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   // Helper function to check if a folder is a descendant of another folder
@@ -185,7 +216,11 @@ export function Drive() {
     const resetDragging = dropZone?.resetDragging || (() => {});
 
     return (
-      <div className="drive">
+      <div 
+        className="drive" 
+        ref={driveContentRef}
+        onContextMenu={handleContextMenu}
+      >
         <div className="drive__toolbar">
           <div className="drive__folder-name">{getCurrentFolderName()}</div>
           <div className="drive__actions">
@@ -199,7 +234,7 @@ export function Drive() {
             </Button>
             <Button
               variant="primary"
-              onClick={() => setIsCreateFolderModalOpen(true)}
+              onClick={handleCreateFolderFromContext}
               className="drive__create-folder"
             >
               <FolderPlus size={18} />
@@ -240,6 +275,7 @@ export function Drive() {
                     onDragLeave={handleDragLeave}
                     onDropComplete={resetDragging}
                     dragOverFolderId={dragOverFolderId}
+                    fileToRename={fileToRename}
                   />
                 ) : (
                   <FileList
@@ -254,6 +290,7 @@ export function Drive() {
                     onDragLeave={handleDragLeave}
                     onDropComplete={resetDragging}
                     dragOverFolderId={dragOverFolderId}
+                    fileToRename={fileToRename}
                   />
                 )}
               </>
@@ -284,12 +321,6 @@ export function Drive() {
         <DriveContent />
       </DropZone>
 
-      <CreateFolderModal
-        isOpen={isCreateFolderModalOpen}
-        onClose={() => setIsCreateFolderModalOpen(false)}
-        onConfirm={handleCreateFolder}
-      />
-
       <PhotoPreview
         isOpen={isPhotoPreviewOpen}
         file={selectedFile}
@@ -299,6 +330,19 @@ export function Drive() {
           setSelectedFile(null);
         }}
       />
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+        >
+          <ContextMenuItem onClick={handleCreateFolderFromContext}>
+            <FolderPlus size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
+            New Folder
+          </ContextMenuItem>
+        </ContextMenu>
+      )}
     </Layout>
   );
 }

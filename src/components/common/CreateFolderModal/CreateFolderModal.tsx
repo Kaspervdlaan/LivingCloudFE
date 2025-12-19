@@ -9,11 +9,11 @@ interface CreateFolderModalProps {
 }
 
 export function CreateFolderModal({ isOpen, onClose, onConfirm }: CreateFolderModalProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Newmap');
 
   useEffect(() => {
     if (isOpen) {
-      setName('');
+      setName('Newmap');
     }
   }, [isOpen]);
 
