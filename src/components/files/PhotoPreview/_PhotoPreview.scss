@@ -41,6 +41,13 @@
   color: white;
   transition: background-color $transition-base $ease-in-out;
   
+  @media (max-width: $breakpoint-md) {
+    top: $spacing-md;
+    right: $spacing-md;
+    width: 44px;
+    height: 44px;
+  }
+  
   &:hover {
     background-color: rgba(0, 0, 0, 0.7);
   }
@@ -55,6 +62,11 @@
   height: 100%;
   overflow: auto;
   padding: $spacing-2xl;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+    padding-bottom: 200px; // Space for controls and toolbar
+  }
 }
 
 .photo-preview__image {
@@ -75,12 +87,30 @@
   background-color: rgba(0, 0, 0, 0.7);
   padding: $spacing-md $spacing-lg;
   border-radius: $radius-lg;
+
+  @media (max-width: $breakpoint-md) {
+    bottom: 80px; // Above the fixed toolbar
+    left: 0;
+    right: 0;
+    transform: none;
+    flex-direction: column;
+    gap: $spacing-md;
+    padding: $spacing-md;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+  }
 }
 
 .photo-preview__nav {
   display: flex;
   align-items: center;
   gap: $spacing-md;
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+    justify-content: space-between;
+    gap: $spacing-lg;
+  }
 }
 
 .photo-preview__button {
@@ -96,6 +126,17 @@
   justify-content: center;
   z-index: 10;
   position: relative;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+    min-width: 44px;
+    min-height: 44px;
+    
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
   
   &:hover:not(:disabled) {
     background-color: rgba(255, 255, 255, 0.1);
@@ -124,6 +165,15 @@
   gap: $spacing-sm;
   padding-left: $spacing-lg;
   border-left: 1px solid rgba(255, 255, 255, 0.2);
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: $spacing-md;
+  }
 }
 
 .photo-preview__zoom-level {
@@ -142,6 +192,16 @@
   padding: $spacing-sm $spacing-md;
   border-radius: $radius-md;
   margin-bottom: 80px;
+
+  @media (max-width: $breakpoint-md) {
+    bottom: 200px; // Above controls
+    left: 0;
+    right: 0;
+    transform: none;
+    margin-bottom: 0;
+    border-radius: 0;
+    text-align: center;
+  }
 }
 
 .photo-preview__name {
