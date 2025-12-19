@@ -49,9 +49,17 @@ export const api = {
   /**
    * Get files (list files in a folder)
    */
-  async getFiles(parentId?: string): Promise<APIResponse<File[]>> {
-    const url = parentId
-      ? getApiUrl(`files?parentId=${encodeURIComponent(parentId)}`)
+  async getFiles(parentId?: string, userId?: string): Promise<APIResponse<File[]>> {
+    const params = new URLSearchParams();
+    if (parentId) {
+      params.append('parentId', parentId);
+    }
+    if (userId) {
+      params.append('userId', userId);
+    }
+    
+    const url = params.toString()
+      ? getApiUrl(`files?${params.toString()}`)
       : getApiUrl('files');
     
     const response = await fetch(url, {

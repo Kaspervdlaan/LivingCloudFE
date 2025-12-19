@@ -6,9 +6,10 @@ interface FilesState {
   files: File[];
   allFiles: File[]; // All files and folders for tree building (cached)
   currentFolderId: string | undefined;
+  viewingUserId: string | undefined; // For admin to view specific user's files
   loading: boolean;
   error: string | null;
-  loadFiles: (parentId?: string) => Promise<void>;
+  loadFiles: (parentId?: string, userId?: string) => Promise<void>;
   uploadFiles: (files: FileList | globalThis.File[], parentId?: string) => Promise<void>;
   createFolder: (request: CreateFolderRequest) => Promise<void>;
   deleteFile: (fileId: string) => Promise<void>;
@@ -21,6 +22,7 @@ interface FilesState {
   getFileById: (fileId: string) => File | undefined;
   getCurrentFolderName: (userName?: string) => string;
   loadAllFolders: () => Promise<void>; // Load all folders for tree view
+  setViewingUserId: (userId: string | undefined) => void; // Set which user's files to view (admin only)
   reset: () => void; // Reset store to initial state (used on logout)
 }
 
@@ -28,13 +30,17 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   files: [],
   allFiles: [], // Start empty, will be loaded from API
   currentFolderId: undefined,
+  viewingUserId: undefined, // For admin to view specific user's files
   loading: false,
   error: null,
 
-  loadFiles: async (parentId?: string) => {
+  loadFiles: async (parentId?: string, userId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.getFiles(parentId);
+      const state = get();
+      // Use viewingUserId from state if userId not provided
+      const targetUserId = userId !== undefined ? userId : state.viewingUserId;
+      const response = await api.getFiles(parentId, targetUserId);
       const fetchedFiles = response.data;
       
       // Update allFiles cache with fetched files
@@ -64,7 +70,8 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   loadAllFolders: async () => {
     try {
       // Fetch all files to get all folders for tree view
-      const response = await api.getFiles();
+      const state = get();
+      const response = await api.getFiles(undefined, state.viewingUserId);
       const allItems = response.data;
       
       // Also try to get files from common parent folders to build complete tree
@@ -264,11 +271,18 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     return folder ? folder.name : defaultName;
   },
 
+  setViewingUserId: (userId: string | undefined) => {
+    set({ viewingUserId: userId, currentFolderId: undefined });
+    // Reload files with new userId
+    get().loadFiles(undefined, userId);
+  },
+
   reset: () => {
     set({
       files: [],
       allFiles: [],
       currentFolderId: undefined,
+      viewingUserId: undefined,
       loading: false,
       error: null,
     });

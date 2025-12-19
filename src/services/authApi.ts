@@ -107,6 +107,24 @@ export const authApi = {
   },
 
   /**
+   * Get all users (admin only)
+   */
+  async getAllUsers(): Promise<User[]> {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(getApiUrl('auth/users'), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return handleResponse<User[]>(response);
+  },
+
+  /**
    * Logout (client-side only, removes token)
    */
   logout(): void {

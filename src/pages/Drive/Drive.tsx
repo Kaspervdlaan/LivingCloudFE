@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Layout } from '../../components/layout/Layout/Layout';
 import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
+import { UserList } from '../../components/files/UserList/UserList';
 import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
@@ -12,8 +13,10 @@ import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/D
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
 import type { File } from '../../types/file';
+import type { User } from '../../types/auth';
 import { isImageFile, isVideoFile } from '../../utils/fileUtils';
 import { api } from '../../utils/api';
+import { authApi } from '../../services/authApi';
 import './_Drive.scss';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,10 +33,16 @@ export function Drive() {
     renameFile,
     moveFile,
     currentFolderId,
+    viewingUserId,
     navigateToFolder,
     getCurrentFolderName,
     getFileById,
+    setViewingUserId,
   } = useFilesStore();
+  
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   const handleNavigateUp = () => {
     if (currentFolderId) {
@@ -41,9 +50,13 @@ export function Drive() {
       if (currentFolder && currentFolder.parentId !== undefined) {
         navigateToFolder(currentFolder.parentId);
       } else {
-        // Navigate to root (My Drive)
+        // Navigate to root
         navigateToFolder(undefined);
       }
+    } else if (viewingUserId && user?.role === 'admin') {
+      // If viewing a user's drive, go back to user list
+      setViewingUserId(undefined);
+      setViewingUser(null);
     }
   };
 
@@ -63,10 +76,32 @@ export function Drive() {
     setViewMode(mode);
   };
 
-  // Load files on mount and when folder changes
+  // Load all users if admin
   useEffect(() => {
-    loadFiles(currentFolderId).catch(console.error);
-  }, [currentFolderId, loadFiles]);
+    if (user?.role === 'admin') {
+      setUsersLoading(true);
+      authApi.getAllUsers()
+        .then((users) => {
+          setAllUsers(users);
+          // If viewingUserId is set, find the user
+          if (viewingUserId) {
+            const foundUser = users.find(u => u.id === viewingUserId);
+            setViewingUser(foundUser || null);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load users:', err);
+        })
+        .finally(() => {
+          setUsersLoading(false);
+        });
+    }
+  }, [user?.role, viewingUserId]);
+
+  // Load files on mount and when folder/user changes
+  useEffect(() => {
+    loadFiles(currentFolderId, viewingUserId).catch(console.error);
+  }, [currentFolderId, viewingUserId, loadFiles]);
 
   useEffect(() => {
     // Filter files by search query
@@ -172,6 +207,10 @@ export function Drive() {
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
+    // Don't show context menu on user list
+    if (isAdminAtRoot) {
+      return;
+    }
     // Only show context menu if clicking on empty space (not on a file item)
     if ((e.target as HTMLElement).closest('.file-item')) {
       return;
@@ -222,6 +261,15 @@ export function Drive() {
     setDragOverFolderId(null);
   };
 
+  const handleUserClick = (selectedUser: User) => {
+    setViewingUserId(selectedUser.id);
+    setViewingUser(selectedUser);
+    navigateToFolder(undefined);
+  };
+
+  // Check if admin is at root level (should show user list)
+  const isAdminAtRoot = user?.role === 'admin' && currentFolderId === undefined && !viewingUserId;
+
   // Inner component to access DropZone context
   function DriveContent() {
     const dropZone = useDropZone();
@@ -234,12 +282,21 @@ export function Drive() {
       >
         <div className="drive__toolbar">
           <div className="drive__breadcrumb">
-            {currentFolderId !== undefined ? (
+            {isAdminAtRoot ? (
+              <button
+                className="drive__back-button"
+                onClick={() => navigate('/drive')}
+                title="Go to My Drive"
+                aria-label="Go to My Drive"
+              >
+                <Cloud size={24} />
+              </button>
+            ) : currentFolderId !== undefined || viewingUserId ? (
               <button
                 className="drive__back-button"
                 onClick={handleNavigateUp}
-                title="Go up one folder"
-                aria-label="Go up one folder"
+                title={viewingUserId ? "Go back to user list" : "Go up one folder"}
+                aria-label={viewingUserId ? "Go back to user list" : "Go up one folder"}
               >
                 <ArrowLeft size={24} />
               </button>
@@ -253,26 +310,35 @@ export function Drive() {
                 <Cloud size={24} />
               </button>
             )}
-            <span className="drive__folder-name">{getCurrentFolderName(user?.name)}</span>
+            <span className="drive__folder-name">
+              {isAdminAtRoot 
+                ? 'All Users' 
+                : viewingUser 
+                  ? `${viewingUser.name || viewingUser.email}'s Drive`
+                  : getCurrentFolderName(user?.name)
+              }
+            </span>
           </div>
-          <div className="drive__actions">
-            <Button
-              variant="secondary"
-              onClick={handleUploadClick}
-              className="drive__upload"
-            >
-              <Upload size={24} />
-              <span>Upload</span>
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleCreateFolderFromContext}
-              className="drive__create-folder"
-            >
-              <FolderPlus size={24} />
-              <span>New Folder</span>
-            </Button>
-          </div>
+          {!isAdminAtRoot && (
+            <div className="drive__actions">
+              <Button
+                variant="secondary"
+                onClick={handleUploadClick}
+                className="drive__upload"
+              >
+                <Upload size={24} />
+                <span>Upload</span>
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleCreateFolderFromContext}
+                className="drive__create-folder"
+              >
+                <FolderPlus size={24} />
+                <span>New Folder</span>
+              </Button>
+            </div>
+          )}
         </div>
 
         <input
@@ -283,49 +349,65 @@ export function Drive() {
           onChange={handleFileInputChange}
         />
 
-        {loading && <div className="drive__loading">Loading...</div>}
-        {error && <div className="drive__error">Error: {error}</div>}
-
-        {!loading && !error && (
+        {isAdminAtRoot ? (
           <>
-            {filteredFiles.length === 0 ? (
+            {usersLoading && <div className="drive__loading">Loading users...</div>}
+            {!usersLoading && allUsers.length === 0 && (
               <div className="drive__empty">
-                <p>No files here. Upload files or create a folder to get started.</p>
+                <p>No users found.</p>
               </div>
-            ) : (
+            )}
+            {!usersLoading && allUsers.length > 0 && (
+              <UserList users={allUsers} onUserClick={handleUserClick} />
+            )}
+          </>
+        ) : (
+          <>
+            {loading && <div className="drive__loading">Loading...</div>}
+            {error && <div className="drive__error">Error: {error}</div>}
+
+            {!loading && !error && (
               <>
-                {viewMode === 'grid' ? (
-                  <FileGrid
-                    files={filteredFiles}
-                    onFileDoubleClick={handleFileDoubleClick}
-                    onDoubleClickFileName={handleDoubleClickFileName}
-                    onFileDelete={handleFileDelete}
-                    onFileDownload={handleFileDownload}
-                    onFileDrop={handleFileDrop}
-                    onDropFiles={handleDropFiles}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDropComplete={resetDragging}
-                    dragOverFolderId={dragOverFolderId}
-                    fileToRename={fileToRename}
-                    currentFolderId={currentFolderId}
-                  />
+                {filteredFiles.length === 0 ? (
+                  <div className="drive__empty">
+                    <p>No files here. Upload files or create a folder to get started.</p>
+                  </div>
                 ) : (
-                  <FileList
-                    files={filteredFiles}
-                    onFileDoubleClick={handleFileDoubleClick}
-                    onDoubleClickFileName={handleDoubleClickFileName}
-                    onFileDelete={handleFileDelete}
-                    onFileDownload={handleFileDownload}
-                    onFileDrop={handleFileDrop}
-                    onDropFiles={handleDropFiles}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDropComplete={resetDragging}
-                    dragOverFolderId={dragOverFolderId}
-                    fileToRename={fileToRename}
-                    currentFolderId={currentFolderId}
-                  />
+                  <>
+                    {viewMode === 'grid' ? (
+                      <FileGrid
+                        files={filteredFiles}
+                        onFileDoubleClick={handleFileDoubleClick}
+                        onDoubleClickFileName={handleDoubleClickFileName}
+                        onFileDelete={handleFileDelete}
+                        onFileDownload={handleFileDownload}
+                        onFileDrop={handleFileDrop}
+                        onDropFiles={handleDropFiles}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDropComplete={resetDragging}
+                        dragOverFolderId={dragOverFolderId}
+                        fileToRename={fileToRename}
+                        currentFolderId={currentFolderId}
+                      />
+                    ) : (
+                      <FileList
+                        files={filteredFiles}
+                        onFileDoubleClick={handleFileDoubleClick}
+                        onDoubleClickFileName={handleDoubleClickFileName}
+                        onFileDelete={handleFileDelete}
+                        onFileDownload={handleFileDownload}
+                        onFileDrop={handleFileDrop}
+                        onDropFiles={handleDropFiles}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDropComplete={resetDragging}
+                        dragOverFolderId={dragOverFolderId}
+                        fileToRename={fileToRename}
+                        currentFolderId={currentFolderId}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}
