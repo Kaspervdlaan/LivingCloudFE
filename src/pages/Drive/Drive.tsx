@@ -9,10 +9,11 @@ import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
 import type { File } from '../../types/file';
 import { isImageFile, isVideoFile } from '../../utils/fileUtils';
 import './_Drive.scss';
+import { useNavigate } from 'react-router-dom';
 
 export function Drive() {
   const {
@@ -55,7 +56,7 @@ export function Drive() {
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const driveContentRef = useRef<HTMLDivElement>(null);
-
+  const navigate = useNavigate();
   // Force grid view on mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -268,7 +269,7 @@ export function Drive() {
       >
         <div className="drive__toolbar">
           <div className="drive__breadcrumb">
-            {currentFolderId !== undefined && (
+            {currentFolderId !== undefined ? (
               <button
                 className="drive__back-button"
                 onClick={handleNavigateUp}
@@ -276,6 +277,15 @@ export function Drive() {
                 aria-label="Go up one folder"
               >
                 <ArrowLeft size={24} />
+              </button>
+            ) : (
+              <button
+                className="drive__back-button"
+                onClick={() => navigate('/drive')}
+                title="Go to My Drive"
+                aria-label="Go to My Drive"
+              >
+                <Cloud size={24} />
               </button>
             )}
             <span className="drive__folder-name">{getCurrentFolderName()}</span>
@@ -333,6 +343,7 @@ export function Drive() {
                     onDropComplete={resetDragging}
                     dragOverFolderId={dragOverFolderId}
                     fileToRename={fileToRename}
+                    currentFolderId={currentFolderId}
                   />
                 ) : (
                   <FileList
@@ -348,6 +359,7 @@ export function Drive() {
                     onDropComplete={resetDragging}
                     dragOverFolderId={dragOverFolderId}
                     fileToRename={fileToRename}
+                    currentFolderId={currentFolderId}
                   />
                 )}
               </>

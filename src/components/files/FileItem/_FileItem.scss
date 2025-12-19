@@ -32,6 +32,18 @@
     align-items: center;
     gap: $spacing-sm;
     padding: $spacing-sm $spacing-md;
+    
+    &:nth-child(even) {
+      background-color: $primary-200;
+    }
+    
+    &:nth-child(odd) {
+      background-color: $primary-300;
+    }
+    
+    &:hover {
+      background-color: $primary-400 !important;
+    }
   }
 
   &--dragging {
@@ -123,7 +135,8 @@
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;
   color: $text-primary;
-  margin-bottom: $spacing-xs;
+  margin-top: $spacing-xs;
+  margin-left: $spacing-xs;
   line-height: 1.3;
   
   .file-item--grid & {

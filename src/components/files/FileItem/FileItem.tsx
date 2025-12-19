@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, type MouseEvent } from 'react';
 import {
-  Folder,
   File as FileIcon,
   Image,
   Video,
@@ -12,6 +11,7 @@ import {
   Trash2,
   Edit,
 } from 'lucide-react';
+import { IoFolder, IoFolderOpen } from 'react-icons/io5';
 import type { File } from '../../../types/file';
 import { getFileIconName, isImageFile, formatFileSize } from '../../../utils/fileUtils';
 import { ContextMenu, ContextMenuItem } from '../../common/ContextMenu/ContextMenu';
@@ -31,10 +31,11 @@ interface FileItemProps {
   isDragOver?: boolean;
   viewMode?: 'grid' | 'list';
   shouldStartRenaming?: boolean;
+  currentFolderId?: string;
 }
 
 const iconMap: Record<string, any> = {
-  folder: Folder,
+  folder: IoFolder,
   image: Image,
   video: Video,
   music: Music,
@@ -57,6 +58,7 @@ export function FileItem({
   isDragOver,
   viewMode = 'grid',
   shouldStartRenaming = false,
+  currentFolderId,
 }: FileItemProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -232,7 +234,13 @@ export function FileItem({
     onDropComplete?.();
   };
 
-  const Icon = iconMap[getFileIconName(file)] || FileIcon;
+  const iconName = getFileIconName(file);
+  let Icon = iconMap[iconName] || FileIcon;
+  
+  // Use IoFolderOpen for the current folder, IoFolder for others
+  if (file.type === 'folder') {
+    Icon = currentFolderId === file.id ? IoFolderOpen : IoFolder;
+  }
 
   return (
     <>

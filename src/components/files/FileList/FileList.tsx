@@ -15,6 +15,7 @@ interface FileListProps {
   onDropComplete?: () => void;
   dragOverFolderId?: string | null;
   fileToRename?: string | null;
+  currentFolderId?: string;
 }
 
 export function FileList({
@@ -30,6 +31,7 @@ export function FileList({
   onDropComplete,
   dragOverFolderId,
   fileToRename,
+  currentFolderId,
 }: FileListProps) {
   return (
     <div className="file-list">
@@ -49,6 +51,7 @@ export function FileList({
           onDropComplete={onDropComplete}
           isDragOver={dragOverFolderId === file.id}
           shouldStartRenaming={fileToRename === file.id}
+          currentFolderId={currentFolderId}
         />
       ))}
     </div>

@@ -11,7 +11,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'drive-theme';
-const DEFAULT_THEME: Theme = 'minimal';
+const DEFAULT_THEME: Theme = 'forest';
 
 // Theme-specific favicon colors (using accent-500 from each theme)
 const THEME_FAVICON_COLORS: Record<Theme, string> = {

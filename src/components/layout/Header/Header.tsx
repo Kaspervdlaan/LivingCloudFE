@@ -75,7 +75,7 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
           {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       )}
-      <div className="header__brand">
+      <div className="header__brand" onClick={() => navigate('/drive')}>
         <Cloud size={24} />
         <span>LivingCloud</span>
       </div>

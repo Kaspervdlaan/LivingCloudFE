@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Folder, ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
+import { IoFolder, IoFolderOpen } from 'react-icons/io5';
 import { useFilesStore } from '../../../store/useFilesStore';
 import type { File } from '../../../types/file';
 import './_FolderTree.scss';
@@ -230,7 +231,11 @@ export function FolderTree({
           ) : (
             <span className="folder-tree__spacer" />
           )}
-          <Folder size={16} className="folder-tree__icon" />
+          {isActive ? (
+            <IoFolderOpen size={16} className="folder-tree__icon" />
+          ) : (
+            <IoFolder size={16} className="folder-tree__icon" />
+          )}
           <span className="folder-tree__name">{folder.name}</span>
         </div>
         {hasChildren && isExpanded && (
@@ -255,7 +260,11 @@ export function FolderTree({
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, undefined)}
       >
-        <Folder size={16} className="folder-tree__icon" />
+        {!currentFolderId ? (
+          <IoFolderOpen size={16} className="folder-tree__icon" />
+        ) : (
+          <IoFolder size={16} className="folder-tree__icon" />
+        )}
         <span className="folder-tree__name">My Drive</span>
       </div>
       {folderTree.map((folder) => renderFolder(folder, 0))}
