@@ -1,12 +1,34 @@
 import type { File, Folder, CreateFolderRequest } from '../types/file';
 import type { APIResponse, APIError } from '../types/api';
 import { getApiUrl } from '../config/api';
+import { getToken } from '../services/authApi';
+
+/**
+ * Get default headers with authentication
+ */
+function getHeaders(): HeadersInit {
+  const headers: HeadersInit = {};
+  const token = getToken();
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
 
 /**
  * Handle API errors
  */
 async function handleResponse<T>(response: Response): Promise<APIResponse<T>> {
   if (!response.ok) {
+    // Handle 401 Unauthorized - redirect to login
+    if (response.status === 401) {
+      // Clear token and redirect
+      localStorage.removeItem('drive-auth-token');
+      window.location.href = '/';
+    }
+    
     let errorMessage = `HTTP error! status: ${response.status}`;
     try {
       const errorData: APIError = await response.json();
@@ -32,7 +54,9 @@ export const api = {
       ? getApiUrl(`files?parentId=${encodeURIComponent(parentId)}`)
       : getApiUrl('files');
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: getHeaders(),
+    });
     return handleResponse<File[]>(response);
   },
 
@@ -40,7 +64,9 @@ export const api = {
    * Get file by ID
    */
   async getFileById(fileId: string): Promise<APIResponse<File>> {
-    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}`));
+    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}`), {
+      headers: getHeaders(),
+    });
     return handleResponse<File>(response);
   },
 
@@ -68,6 +94,7 @@ export const api = {
     
     const response = await fetch(getApiUrl('files/upload'), {
       method: 'POST',
+      headers: getHeaders(),
       body: formData,
     });
     
@@ -82,6 +109,7 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getHeaders(),
       },
       body: JSON.stringify(request),
     });
@@ -97,6 +125,7 @@ export const api = {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...getHeaders(),
       },
       body: JSON.stringify({ name: newName }),
     });
@@ -115,6 +144,7 @@ export const api = {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...getHeaders(),
       },
       body: JSON.stringify({ destinationId: destinationId || null }),
     });
@@ -130,6 +160,7 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getHeaders(),
       },
       body: JSON.stringify({ destinationId }),
     });
@@ -143,6 +174,7 @@ export const api = {
   async deleteFile(fileId: string): Promise<void> {
     const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}`), {
       method: 'DELETE',
+      headers: getHeaders(),
     });
     
     if (!response.ok) {
@@ -166,7 +198,9 @@ export const api = {
    * Download file
    */
   async downloadFile(fileId: string): Promise<Blob> {
-    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}/download`));
+    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}/download`), {
+      headers: getHeaders(),
+    });
     
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;

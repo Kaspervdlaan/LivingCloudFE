@@ -86,3 +86,110 @@
   }
 }
 
+.header__theme-picker {
+  position: relative;
+}
+
+.header__theme-button {
+  @include flex-center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-base $ease-in-out;
+  font-size: $font-size-sm;
+  
+  &:hover {
+    background-color: $surface;
+    color: $text-primary;
+  }
+}
+
+.header__theme-name {
+  font-weight: $font-weight-medium;
+}
+
+.header__theme-chevron {
+  transition: transform $transition-base $ease-in-out;
+  
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.header__theme-dropdown {
+  position: absolute;
+  top: calc(100% + $spacing-xs);
+  right: 0;
+  background-color: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-medium;
+  min-width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.header__theme-option {
+  @include flex-between;
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-primary;
+  text-align: left;
+  transition: all $transition-base $ease-in-out;
+  font-size: $font-size-sm;
+  
+  &:hover {
+    background-color: $hover;
+  }
+  
+  &--active {
+    background-color: $primary-100;
+    color: $accent-500;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.header__theme-check {
+  color: $accent-500;
+  font-weight: $font-weight-bold;
+}
+
+.header__user {
+  @include flex-center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+}
+
+.header__user-name {
+  font-weight: $font-weight-medium;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header__logout-button {
+  @include flex-center;
+  padding: $spacing-xs $spacing-sm;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-base $ease-in-out;
+  
+  &:hover {
+    background-color: $surface;
+    color: $text-primary;
+  }
+}
+

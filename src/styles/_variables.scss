@@ -1,93 +1,90 @@
-// Color Palette - Hacker Terminal Green (monochrome green on black)
+// SCSS Variables mapped to CSS Custom Properties
+// These variables reference CSS custom properties defined in theme files
+// Fallback values are the default "hacker" theme values
 
 // Primary (used for surfaces / neutrals)
-$primary-50:  #000000; // background
-$primary-100: #060A06; // bg-soft
-$primary-200: #0B120B; // surface-1
-$primary-300: #101B10; // surface-2
-$primary-400: #162716; // border-strong
-$primary-500: #1F3A1F; // border/lines
-$primary-600: #2E5C2E; // muted UI
-$primary-700: #3F8A3F; // muted text / icons
-$primary-800: #66FF66; // secondary text (bright but softer)
-$primary-900: #00FF00; // terminal green (primary text / highlight)
+$primary-50: var(--primary-50, #000000);
+$primary-100: var(--primary-100, #060A06);
+$primary-200: var(--primary-200, #0B120B);
+$primary-300: var(--primary-300, #101B10);
+$primary-400: var(--primary-400, #162716);
+$primary-500: var(--primary-500, #1F3A1F);
+$primary-600: var(--primary-600, #2E5C2E);
+$primary-700: var(--primary-700, #3F8A3F);
+$primary-800: var(--primary-800, #66FF66);
+$primary-900: var(--primary-900, #00FF00);
 
 // Accent (green scale for interactive states)
-$accent-50:  #001A00;
-$accent-100: #003300;
-$accent-200: #004D00;
-$accent-300: #00B800;
-$accent-400: #00E600;
-$accent-500: #00FF00; // main accent
-$accent-600: #33FF33; // hover
-$accent-700: #66FF66; // focus highlight
-$accent-800: #99FF99; // subtle glow highlight
-$accent-900: #CCFFCC; // very light green (rarely)
+$accent-50: var(--accent-50, #001A00);
+$accent-100: var(--accent-100, #003300);
+$accent-200: var(--accent-200, #004D00);
+$accent-300: var(--accent-300, #00B800);
+$accent-400: var(--accent-400, #00E600);
+$accent-500: var(--accent-500, #00FF00);
+$accent-600: var(--accent-600, #33FF33);
+$accent-700: var(--accent-700, #66FF66);
+$accent-800: var(--accent-800, #99FF99);
+$accent-900: var(--accent-900, #CCFFCC);
 
 // Semantic Colors
-$background: $primary-50;
-$surface: $primary-200;        // cards / panels
-$text-primary: $primary-900;   // neon green
-$text-secondary: $primary-800; // softer green
-$border: $primary-500;
-$hover: $primary-300;
+$background: var(--background, #000000);
+$surface: var(--surface, #0B120B);
+$text-primary: var(--text-primary, #00FF00);
+$text-secondary: var(--text-secondary, #66FF66);
+$border: var(--border, #1F3A1F);
+$hover: var(--hover, #101B10);
 
-// Spacing (unchanged)
-$spacing-xs: 0.25rem;   // 4px
-$spacing-sm: 0.5rem;    // 8px
-$spacing-md: 1rem;      // 16px
-$spacing-lg: 1.5rem;    // 24px
-$spacing-xl: 2rem;      // 32px
-$spacing-2xl: 3rem;     // 48px
+// Spacing
+$spacing-xs: var(--spacing-xs, 0.25rem);
+$spacing-sm: var(--spacing-sm, 0.5rem);
+$spacing-md: var(--spacing-md, 1rem);
+$spacing-lg: var(--spacing-lg, 1.5rem);
+$spacing-xl: var(--spacing-xl, 2rem);
+$spacing-2xl: var(--spacing-2xl, 3rem);
 
-// Typography (terminal-ish; add mono first, fall back to your original)
-$font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+// Typography
+$font-family: var(--font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+$font-size-xs: var(--font-size-xs, 0.75rem);
+$font-size-sm: var(--font-size-sm, 0.875rem);
+$font-size-base: var(--font-size-base, 1rem);
+$font-size-lg: var(--font-size-lg, 1.125rem);
+$font-size-xl: var(--font-size-xl, 1.25rem);
+$font-size-2xl: var(--font-size-2xl, 1.5rem);
+$font-size-3xl: var(--font-size-3xl, 1.875rem);
+$font-weight-normal: var(--font-weight-normal, 400);
+$font-weight-medium: var(--font-weight-medium, 500);
+$font-weight-semibold: var(--font-weight-semibold, 600);
+$font-weight-bold: var(--font-weight-bold, 700);
+$line-height-tight: var(--line-height-tight, 1.25);
+$line-height-normal: var(--line-height-normal, 1.5);
+$line-height-relaxed: var(--line-height-relaxed, 1.75);
 
-$font-size-xs: 0.75rem;   // 12px
-$font-size-sm: 0.875rem; // 14px
-$font-size-base: 1rem;    // 16px
-$font-size-lg: 1.125rem;  // 18px
-$font-size-xl: 1.25rem;   // 20px
-$font-size-2xl: 1.5rem;  // 24px
-$font-size-3xl: 1.875rem; // 30px
+// Border Radius
+$radius-sm: var(--radius-sm, 0.25rem);
+$radius-md: var(--radius-md, 0.375rem);
+$radius-lg: var(--radius-lg, 0.5rem);
+$radius-xl: var(--radius-xl, 0.75rem);
+$radius-2xl: var(--radius-2xl, 1rem);
 
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
+// Shadows
+$shadow-soft: var(--shadow-soft, 0 0 0 1px rgba(0, 255, 0, 0.08), 0 6px 18px rgba(0, 0, 0, 0.6));
+$shadow-medium: var(--shadow-medium, 0 0 0 1px rgba(0, 255, 0, 0.14), 0 10px 28px rgba(0, 0, 0, 0.75));
+$shadow-strong: var(--shadow-strong, 0 0 0 1px rgba(0, 255, 0, 0.20), 0 18px 48px rgba(0, 0, 0, 0.85));
 
-$line-height-tight: 1.25;
-$line-height-normal: 1.5;
-$line-height-relaxed: 1.75;
+// Transitions
+$transition-fast: var(--transition-fast, 150ms);
+$transition-base: var(--transition-base, 200ms);
+$transition-slow: var(--transition-slow, 300ms);
+$transition-slower: var(--transition-slower, 500ms);
+$ease-in-out: var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+$ease-out: var(--ease-out, cubic-bezier(0, 0, 0.2, 1));
 
-// Border Radius (optional: terminals look sharper; keep yours if you want)
-$radius-sm: 0.25rem;   // 4px
-$radius-md: 0.375rem;  // 6px
-$radius-lg: 0.5rem;    // 8px
-$radius-xl: 0.75rem;   // 12px
-$radius-2xl: 1rem;     // 16px
-
-// Shadows (swap to subtle green glow)
-$shadow-soft:   0 0 0 1px rgba(0, 255, 0, 0.08), 0 6px 18px rgba(0, 0, 0, 0.6);
-$shadow-medium: 0 0 0 1px rgba(0, 255, 0, 0.14), 0 10px 28px rgba(0, 0, 0, 0.75);
-$shadow-strong: 0 0 0 1px rgba(0, 255, 0, 0.20), 0 18px 48px rgba(0, 0, 0, 0.85);
-
-// Transitions (unchanged)
-$transition-fast: 150ms;
-$transition-base: 200ms;
-$transition-slow: 300ms;
-$transition-slower: 500ms;
-
-$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-$ease-out: cubic-bezier(0, 0, 0.2, 1);
-
-// Breakpoints (unchanged)
+// Breakpoints (these remain as SCSS variables since they're used in mixins)
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1536px;
 
-// Optional: reusable terminal glow helper (use on headings/buttons/active elements)
-$glow-green: 0 0 6px rgba(0, 255, 0, 0.45);
+// Glow effect
+$glow-green: var(--glow-green, 0 0 6px rgba(0, 255, 0, 0.45));

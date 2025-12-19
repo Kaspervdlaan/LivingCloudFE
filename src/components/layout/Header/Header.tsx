@@ -1,5 +1,8 @@
-import { useState, type ChangeEvent } from 'react';
-import { Search, Grid, List, Cloud } from 'lucide-react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { Search, Grid, List, Cloud, Palette, ChevronDown, LogOut, User } from 'lucide-react';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './_Header.scss';
 
 interface HeaderProps {
@@ -10,11 +13,48 @@ interface HeaderProps {
 
 export function Header({ onSearch, viewMode, onViewModeChange }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     onSearch(query);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
+        setIsThemeDropdownOpen(false);
+      }
+    };
+
+    if (isThemeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isThemeDropdownOpen]);
+
+  const handleThemeSelect = (selectedTheme: 'hacker' | 'minimal') => {
+    setTheme(selectedTheme);
+    setIsThemeDropdownOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const themeNames = {
+    hacker: 'Hacker Terminal',
+    minimal: 'Minimal & Slick',
   };
 
   return (
@@ -50,6 +90,48 @@ export function Header({ onSearch, viewMode, onViewModeChange }: HeaderProps) {
             <List size={18} />
           </button>
         </div>
+        <div className="header__theme-picker" ref={themeDropdownRef}>
+          <button
+            className="header__theme-button"
+            onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+            title="Select theme"
+          >
+            <Palette size={18} />
+            <span className="header__theme-name">{themeNames[theme]}</span>
+            <ChevronDown size={16} className={`header__theme-chevron ${isThemeDropdownOpen ? 'header__theme-chevron--open' : ''}`} />
+          </button>
+          {isThemeDropdownOpen && (
+            <div className="header__theme-dropdown">
+              <button
+                className={`header__theme-option ${theme === 'hacker' ? 'header__theme-option--active' : ''}`}
+                onClick={() => handleThemeSelect('hacker')}
+              >
+                {themeNames.hacker}
+                {theme === 'hacker' && <span className="header__theme-check">✓</span>}
+              </button>
+              <button
+                className={`header__theme-option ${theme === 'minimal' ? 'header__theme-option--active' : ''}`}
+                onClick={() => handleThemeSelect('minimal')}
+              >
+                {themeNames.minimal}
+                {theme === 'minimal' && <span className="header__theme-check">✓</span>}
+              </button>
+            </div>
+          )}
+        </div>
+        {user && (
+          <div className="header__user">
+            <User size={18} />
+            <span className="header__user-name">{user.name}</span>
+          </div>
+        )}
+        <button
+          className="header__logout-button"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );
