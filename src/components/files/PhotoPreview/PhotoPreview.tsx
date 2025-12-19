@@ -14,7 +14,6 @@ interface PhotoPreviewProps {
 export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const imageFiles = files.filter(f => isImageFile(f));
 
@@ -31,7 +30,6 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
   useEffect(() => {
     if (!isOpen) {
       setZoom(1);
-      setIsFullscreen(false);
     }
   }, [isOpen]);
 
@@ -90,10 +88,8 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
     e?.stopPropagation();
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen();
-      setIsFullscreen(false);
     }
   };
 

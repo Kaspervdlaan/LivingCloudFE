@@ -1,4 +1,5 @@
-import { ReactNode, createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import { useDragDrop } from '../../../hooks/useDragDrop';
 import { useFilesStore } from '../../../store/useFilesStore';
 import './_DropZone.scss';

@@ -74,7 +74,7 @@ export const api = {
    * Upload files
    */
   async uploadFiles(
-    files: FileList | File[],
+    files: FileList | globalThis.File[],
     parentId?: string
   ): Promise<APIResponse<File[]>> {
     const formData = new FormData();
@@ -82,8 +82,8 @@ export const api = {
     // Convert FileList to array if needed
     const fileArray = files instanceof FileList ? Array.from(files) : files;
     
-    // Add all files to FormData
-    fileArray.forEach((file) => {
+    // Add all files to FormData (using DOM File type)
+    fileArray.forEach((file: globalThis.File) => {
       formData.append('files', file);
     });
     

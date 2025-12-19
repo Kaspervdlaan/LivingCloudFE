@@ -6,7 +6,7 @@ export interface FileMetadata {
   updatedAt: string;
 }
 
-export interface File {
+export interface DriveFile {
   id: string;
   name: string;
   type: 'file' | 'folder';
@@ -22,7 +22,10 @@ export interface File {
   downloadUrl?: string;
 }
 
-export interface Folder extends File {
+// Keep File as an alias for backward compatibility during migration
+export type File = DriveFile;
+
+export interface Folder extends DriveFile {
   type: 'folder';
   childrenCount?: number;
 }
