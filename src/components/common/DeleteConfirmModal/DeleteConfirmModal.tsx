@@ -6,7 +6,7 @@ import './_DeleteConfirmModal.scss';
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   fileName: string;
-  fileType: 'file' | 'folder';
+  fileType: 'file' | 'folder' | 'user';
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -38,7 +38,9 @@ export function DeleteConfirmModal({
           <div className="delete-confirm-modal__icon">
             <Trash2 size={24} />
           </div>
-          <h2 className="delete-confirm-modal__title">Delete {fileType === 'folder' ? 'Folder' : 'File'}?</h2>
+          <h2 className="delete-confirm-modal__title">
+            Delete {fileType === 'folder' ? 'Folder' : fileType === 'user' ? 'User' : 'File'}?
+          </h2>
           <button
             className="delete-confirm-modal__close"
             onClick={onClose}
@@ -51,6 +53,7 @@ export function DeleteConfirmModal({
           <p className="delete-confirm-modal__message">
             Are you sure you want to delete <strong>"{fileName}"</strong>?
             {fileType === 'folder' && ' This will also delete all files and folders inside it.'}
+            {fileType === 'user' && ' This will also delete all files and folders owned by this user. This action cannot be undone.'}
           </p>
           <p className="delete-confirm-modal__warning">This action cannot be undone.</p>
           <div className="delete-confirm-modal__actions">

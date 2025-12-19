@@ -43,6 +43,7 @@ export function Drive() {
   
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const handleNavigateUp = () => {
     if (currentFolderId) {
@@ -274,6 +275,30 @@ export function Drive() {
     navigateToFolder(undefined);
   };
 
+  const handleUserDelete = (selectedUser: User) => {
+    setUserToDelete(selectedUser);
+  };
+
+  const confirmUserDelete = async () => {
+    if (userToDelete) {
+      try {
+        await authApi.deleteUser(userToDelete.id);
+        
+        // If we were viewing this user's drive, go back to user list
+        if (viewingUserId === userToDelete.id) {
+          setViewingUserId(undefined, null);
+        }
+        
+        // Remove user from list
+        setAllUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        setUserToDelete(null);
+      } catch (err: any) {
+        console.error('Failed to delete user:', err);
+        alert(err.message || 'Failed to delete user');
+      }
+    }
+  };
+
   const handleDeleteCurrentFolder = () => {
     if (currentFolderId) {
       const currentFolder = getFileById(currentFolderId);
@@ -389,7 +414,12 @@ export function Drive() {
               </div>
             )}
             {!usersLoading && allUsers.length > 0 && (
-              <UserList users={allUsers} onUserClick={handleUserClick} />
+              <UserList 
+                users={allUsers} 
+                onUserClick={handleUserClick}
+                onUserDelete={handleUserDelete}
+                currentUserId={user?.id}
+              />
             )}
           </>
         ) : (
@@ -506,6 +536,13 @@ export function Drive() {
         fileType={fileToDelete?.type || 'file'}
         onClose={() => setFileToDelete(null)}
         onConfirm={confirmDelete}
+      />
+      <DeleteConfirmModal
+        isOpen={userToDelete !== null}
+        fileName={userToDelete?.name || userToDelete?.email || ''}
+        fileType="user"
+        onClose={() => setUserToDelete(null)}
+        onConfirm={confirmUserDelete}
       />
     </Layout>
   );

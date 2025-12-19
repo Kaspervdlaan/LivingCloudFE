@@ -125,6 +125,34 @@ export const authApi = {
   },
 
   /**
+   * Delete a user (admin only)
+   */
+  async deleteUser(userId: string): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(getApiUrl(`auth/users/${encodeURIComponent(userId)}`), {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
    * Logout (client-side only, removes token)
    */
   logout(): void {
