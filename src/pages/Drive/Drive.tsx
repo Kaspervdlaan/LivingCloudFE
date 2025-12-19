@@ -11,7 +11,7 @@ import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2 } from 'lucide-react';
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
 import { isImageFile, isVideoFile } from '../../utils/fileUtils';
@@ -34,6 +34,7 @@ export function Drive() {
     moveFile,
     currentFolderId,
     viewingUserId,
+    viewingUser,
     navigateToFolder,
     getCurrentFolderName,
     getFileById,
@@ -42,7 +43,6 @@ export function Drive() {
   
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   const handleNavigateUp = () => {
     if (currentFolderId) {
@@ -55,8 +55,7 @@ export function Drive() {
       }
     } else if (viewingUserId && user?.role === 'admin') {
       // If viewing a user's drive, go back to user list
-      setViewingUserId(undefined);
-      setViewingUser(null);
+      setViewingUserId(undefined, null);
     }
   };
 
@@ -83,10 +82,12 @@ export function Drive() {
       authApi.getAllUsers()
         .then((users) => {
           setAllUsers(users);
-          // If viewingUserId is set, find the user
+          // If viewingUserId is set, find the user and update store
           if (viewingUserId) {
             const foundUser = users.find(u => u.id === viewingUserId);
-            setViewingUser(foundUser || null);
+            if (foundUser && viewingUser?.id !== viewingUserId) {
+              setViewingUserId(viewingUserId, foundUser);
+            }
           }
         })
         .catch((err) => {
@@ -96,7 +97,7 @@ export function Drive() {
           setUsersLoading(false);
         });
     }
-  }, [user?.role, viewingUserId]);
+  }, [user?.role, viewingUserId, viewingUser, setViewingUserId]);
 
   // Load files on mount and when folder/user changes
   useEffect(() => {
@@ -164,8 +165,15 @@ export function Drive() {
 
   const confirmDelete = async () => {
     if (fileToDelete) {
+      const wasCurrentFolder = fileToDelete.id === currentFolderId && fileToDelete.type === 'folder';
       await deleteFile(fileToDelete.id);
       setFileToDelete(null);
+      
+      // If we deleted the current folder, navigate to its parent
+      if (wasCurrentFolder) {
+        const parentId = fileToDelete.parentId;
+        navigateToFolder(parentId);
+      }
     }
   };
 
@@ -262,13 +270,24 @@ export function Drive() {
   };
 
   const handleUserClick = (selectedUser: User) => {
-    setViewingUserId(selectedUser.id);
-    setViewingUser(selectedUser);
+    setViewingUserId(selectedUser.id, selectedUser);
     navigateToFolder(undefined);
+  };
+
+  const handleDeleteCurrentFolder = () => {
+    if (currentFolderId) {
+      const currentFolder = getFileById(currentFolderId);
+      if (currentFolder && currentFolder.type === 'folder') {
+        setFileToDelete(currentFolder);
+      }
+    }
   };
 
   // Check if admin is at root level (should show user list)
   const isAdminAtRoot = user?.role === 'admin' && currentFolderId === undefined && !viewingUserId;
+  
+  // Get current folder if we're inside one
+  const currentFolder = currentFolderId ? getFileById(currentFolderId) : null;
 
   // Inner component to access DropZone context
   function DriveContent() {
@@ -337,6 +356,18 @@ export function Drive() {
                 <FolderPlus size={24} />
                 <span>New Folder</span>
               </Button>
+              {currentFolder && currentFolder.type === 'folder' && (
+                <Button
+                  variant="secondary"
+                  onClick={handleDeleteCurrentFolder}
+                  className="drive__delete-folder"
+                  title={`Delete folder "${currentFolder.name}"`}
+                  aria-label={`Delete folder "${currentFolder.name}"`}
+                >
+                  <Trash2 size={24} />
+                  <span>Delete Folder</span>
+                </Button>
+              )}
             </div>
           )}
         </div>

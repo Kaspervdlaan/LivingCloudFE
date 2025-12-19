@@ -31,12 +31,14 @@ export function FolderTree({
   const navigateToFolder = useFilesStore((state) => state.navigateToFolder);
   const allFiles = useFilesStore((state) => state.allFiles);
   const loadAllFolders = useFilesStore((state) => state.loadAllFolders);
+  const viewingUserId = useFilesStore((state) => state.viewingUserId);
+  const viewingUser = useFilesStore((state) => state.viewingUser);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
 
-  // Load all folders on mount for tree view
+  // Load all folders on mount and when viewingUserId changes
   useEffect(() => {
     loadAllFolders().catch(console.error);
-  }, [loadAllFolders]);
+  }, [loadAllFolders, viewingUserId]);
 
   // Build hierarchical tree structure
   const folderTree = useMemo(() => {
@@ -267,7 +269,14 @@ export function FolderTree({
         ) : (
           <IoFolder size={16} className="folder-tree__icon" />
         )}
-        <span className="folder-tree__name">{user?.name ? `${user.name}'s Drive` : 'My Drive'}</span>
+        <span className="folder-tree__name">
+          {viewingUser 
+            ? `${viewingUser.name || viewingUser.email}'s Drive`
+            : user?.name 
+              ? `${user.name}'s Drive` 
+              : 'My Drive'
+          }
+        </span>
       </div>
       {folderTree.map((folder) => renderFolder(folder, 0))}
     </div>

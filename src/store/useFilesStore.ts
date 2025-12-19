@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { File, CreateFolderRequest } from '../types/file';
+import type { User } from '../types/auth';
 import { api } from '../utils/api';
 
 interface FilesState {
@@ -7,6 +8,7 @@ interface FilesState {
   allFiles: File[]; // All files and folders for tree building (cached)
   currentFolderId: string | undefined;
   viewingUserId: string | undefined; // For admin to view specific user's files
+  viewingUser: User | null; // The user being viewed (for admin)
   loading: boolean;
   error: string | null;
   loadFiles: (parentId?: string, userId?: string) => Promise<void>;
@@ -22,7 +24,7 @@ interface FilesState {
   getFileById: (fileId: string) => File | undefined;
   getCurrentFolderName: (userName?: string) => string;
   loadAllFolders: () => Promise<void>; // Load all folders for tree view
-  setViewingUserId: (userId: string | undefined) => void; // Set which user's files to view (admin only)
+  setViewingUserId: (userId: string | undefined, user?: User | null) => void; // Set which user's files to view (admin only)
   reset: () => void; // Reset store to initial state (used on logout)
 }
 
@@ -31,6 +33,7 @@ export const useFilesStore = create<FilesState>((set, get) => ({
   allFiles: [], // Start empty, will be loaded from API
   currentFolderId: undefined,
   viewingUserId: undefined, // For admin to view specific user's files
+  viewingUser: null, // The user being viewed (for admin)
   loading: false,
   error: null,
 
@@ -271,8 +274,13 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     return folder ? folder.name : defaultName;
   },
 
-  setViewingUserId: (userId: string | undefined) => {
-    set({ viewingUserId: userId, currentFolderId: undefined });
+  setViewingUserId: (userId: string | undefined, user?: User | null) => {
+    set({ 
+      viewingUserId: userId, 
+      viewingUser: user || null, 
+      currentFolderId: undefined,
+      allFiles: [], // Clear cache when switching users
+    });
     // Reload files with new userId
     get().loadFiles(undefined, userId);
   },
@@ -283,6 +291,7 @@ export const useFilesStore = create<FilesState>((set, get) => ({
       allFiles: [],
       currentFolderId: undefined,
       viewingUserId: undefined,
+      viewingUser: null,
       loading: false,
       error: null,
     });

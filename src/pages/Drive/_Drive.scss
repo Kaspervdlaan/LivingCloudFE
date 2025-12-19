@@ -106,7 +106,8 @@
 }
 
 .drive__upload,
-.drive__create-folder {
+.drive__create-folder,
+.drive__delete-folder {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
@@ -125,6 +126,15 @@
     span {
       display: none; // Hide text on mobile
     }
+  }
+}
+
+.drive__delete-folder {
+  color: #dc2626;
+
+  &:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
   }
 }
 
