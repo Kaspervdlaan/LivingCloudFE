@@ -7,6 +7,7 @@ import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone'
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
+import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft } from 'lucide-react';
 import type { File } from '../../types/file';
@@ -48,6 +49,7 @@ export function Drive() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const [isVideoPreviewOpen, setIsVideoPreviewOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
@@ -136,8 +138,13 @@ export function Drive() {
   };
 
   const handleFileDelete = async (file: File) => {
-    if (window.confirm(`Are you sure you want to delete "${file.name}"?`)) {
-      await deleteFile(file.id);
+    setFileToDelete(file);
+  };
+
+  const confirmDelete = async () => {
+    if (fileToDelete) {
+      await deleteFile(fileToDelete.id);
+      setFileToDelete(null);
     }
   };
 
@@ -268,7 +275,7 @@ export function Drive() {
                 title="Go up one folder"
                 aria-label="Go up one folder"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={24} />
               </button>
             )}
             <span className="drive__folder-name">{getCurrentFolderName()}</span>
@@ -279,7 +286,7 @@ export function Drive() {
               onClick={handleUploadClick}
               className="drive__upload"
             >
-              <Upload size={18} />
+              <Upload size={24} />
               <span>Upload</span>
             </Button>
             <Button
@@ -287,7 +294,7 @@ export function Drive() {
               onClick={handleCreateFolderFromContext}
               className="drive__create-folder"
             >
-              <FolderPlus size={18} />
+              <FolderPlus size={24} />
               <span>New Folder</span>
             </Button>
           </div>
@@ -402,6 +409,13 @@ export function Drive() {
           </ContextMenuItem>
         </ContextMenu>
       )}
+      <DeleteConfirmModal
+        isOpen={fileToDelete !== null}
+        fileName={fileToDelete?.name || ''}
+        fileType={fileToDelete?.type || 'file'}
+        onClose={() => setFileToDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </Layout>
   );
 }
