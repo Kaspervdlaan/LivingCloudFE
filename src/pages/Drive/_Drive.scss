@@ -3,6 +3,10 @@
 
 .drive {
   min-height: 100%;
+
+  @media (max-width: $breakpoint-md) {
+    padding-bottom: 70px; // Space for fixed bottom bubar
+  }
 }
 
 .drive__toolbar {
@@ -12,8 +16,16 @@
   border-bottom: 1px solid $border;
 
   @media (max-width: $breakpoint-md) {
-    padding: $spacing-sm $spacing-md;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: $spacing-md;
     gap: $spacing-sm;
+    border-bottom: none;
+    border-top: 1px solid $border;
+    z-index: 100;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
   }
 }
 
@@ -110,17 +122,17 @@
   gap: $spacing-sm;
 
   @media (max-width: $breakpoint-md) {
-    gap: $spacing-xs;
-    padding: $spacing-xs $spacing-sm !important;
-    font-size: $font-size-xs !important;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md !important;
+    font-size: $font-size-sm !important;
 
     svg {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
     }
 
     span {
-      font-size: $font-size-xs;
+      font-size: $font-size-sm;
     }
   }
 }

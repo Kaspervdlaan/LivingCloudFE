@@ -5,12 +5,12 @@
   @include button-base;
   
   @media (max-width: $breakpoint-md) {
-    padding: $spacing-xs $spacing-sm;
-    font-size: $font-size-xs;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
     
     svg {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
     }
   }
   
