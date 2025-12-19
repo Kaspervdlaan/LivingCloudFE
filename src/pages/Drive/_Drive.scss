@@ -12,6 +12,35 @@
   border-bottom: 1px solid $border;
 }
 
+.drive__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.drive__back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xs;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-fast $ease-in-out;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: $hover;
+    color: $text-primary;
+  }
+
+  &:active {
+    background-color: $primary-300;
+  }
+}
+
 .drive__folder-name {
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
@@ -29,15 +58,8 @@
   background: none;
   border: none;
   color: $text-secondary;
-  cursor: pointer;
   padding: $spacing-xs $spacing-sm;
-  border-radius: $radius-sm;
   transition: color $transition-base $ease-in-out;
-  
-  &:hover {
-    color: $text-primary;
-    background-color: $hover;
-  }
 }
 
 .drive__separator {

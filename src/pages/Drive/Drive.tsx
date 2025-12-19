@@ -7,7 +7,7 @@ import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone'
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft } from 'lucide-react';
 import type { File } from '../../types/file';
 import { isImageFile } from '../../utils/fileUtils';
 import './_Drive.scss';
@@ -28,6 +28,18 @@ export function Drive() {
     getCurrentFolderName,
     getFileById,
   } = useFilesStore();
+
+  const handleNavigateUp = () => {
+    if (currentFolderId) {
+      const currentFolder = getFileById(currentFolderId);
+      if (currentFolder && currentFolder.parentId !== undefined) {
+        navigateToFolder(currentFolder.parentId);
+      } else {
+        // Navigate to root (My Drive)
+        navigateToFolder(undefined);
+      }
+    }
+  };
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -222,7 +234,19 @@ export function Drive() {
         onContextMenu={handleContextMenu}
       >
         <div className="drive__toolbar">
-          <div className="drive__folder-name">{getCurrentFolderName()}</div>
+          <div className="drive__breadcrumb">
+            {currentFolderId !== undefined && (
+              <button
+                className="drive__back-button"
+                onClick={handleNavigateUp}
+                title="Go up one folder"
+                aria-label="Go up one folder"
+              >
+                <ArrowLeft size={18} />
+              </button>
+            )}
+            <span className="drive__folder-name">{getCurrentFolderName()}</span>
+          </div>
           <div className="drive__actions">
             <Button
               variant="primary"
