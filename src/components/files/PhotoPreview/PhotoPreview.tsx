@@ -18,14 +18,15 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
 
   const imageFiles = files.filter(f => isImageFile(f));
 
+  // Only set index when the file prop changes (initial open), not when navigating
   useEffect(() => {
-    if (file && isImageFile(file)) {
+    if (file && isImageFile(file) && isOpen) {
       const index = imageFiles.findIndex(f => f.id === file.id);
       if (index !== -1) {
         setCurrentIndex(index);
       }
     }
-  }, [file, imageFiles]);
+  }, [file?.id, isOpen]); // Only depend on file.id and isOpen, not imageFiles array
 
   useEffect(() => {
     if (!isOpen) {
@@ -41,39 +42,52 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
       if (e.key === 'Escape') {
         onClose();
       } else if (e.key === 'ArrowLeft') {
-        handlePrevious();
+        e.preventDefault();
+        if (currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1);
+          setZoom(1);
+        }
       } else if (e.key === 'ArrowRight') {
-        handleNext();
+        e.preventDefault();
+        if (currentIndex < imageFiles.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+          setZoom(1);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, imageFiles.length]);
+  }, [isOpen, currentIndex, imageFiles.length, onClose]);
 
-  const handlePrevious = () => {
+  const handlePrevious = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       setZoom(1);
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (currentIndex < imageFiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setZoom(1);
     }
   };
 
-  const handleZoomIn = () => {
+  const handleZoomIn = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setZoom(prev => Math.min(prev + 0.25, 3));
   };
 
-  const handleZoomOut = () => {
+  const handleZoomOut = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setZoom(prev => Math.max(prev - 0.25, 0.5));
   };
 
-  const handleFullscreen = () => {
+  const handleFullscreen = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
       setIsFullscreen(true);
@@ -108,7 +122,7 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
           <div className="photo-preview__nav">
             <button
               className="photo-preview__button"
-              onClick={handlePrevious}
+              onClick={(e) => handlePrevious(e)}
               disabled={currentIndex === 0}
               aria-label="Previous"
             >
@@ -119,7 +133,7 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
             </span>
             <button
               className="photo-preview__button"
-              onClick={handleNext}
+              onClick={(e) => handleNext(e)}
               disabled={currentIndex === imageFiles.length - 1}
               aria-label="Next"
             >
@@ -128,14 +142,14 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
           </div>
 
           <div className="photo-preview__zoom">
-            <button className="photo-preview__button" onClick={handleZoomOut} aria-label="Zoom out">
+            <button className="photo-preview__button" onClick={(e) => handleZoomOut(e)} aria-label="Zoom out">
               <ZoomOut size={20} />
             </button>
             <span className="photo-preview__zoom-level">{Math.round(zoom * 100)}%</span>
-            <button className="photo-preview__button" onClick={handleZoomIn} aria-label="Zoom in">
+            <button className="photo-preview__button" onClick={(e) => handleZoomIn(e)} aria-label="Zoom in">
               <ZoomIn size={20} />
             </button>
-            <button className="photo-preview__button" onClick={handleFullscreen} aria-label="Fullscreen">
+            <button className="photo-preview__button" onClick={(e) => handleFullscreen(e)} aria-label="Fullscreen">
               <Maximize size={20} />
             </button>
           </div>
