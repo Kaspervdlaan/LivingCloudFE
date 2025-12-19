@@ -254,13 +254,14 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     return state.allFiles.find((f) => f.id === fileId);
   },
 
-  getCurrentFolderName: () => {
+  getCurrentFolderName: (userName?: string) => {
     const state = get();
+    const defaultName = userName ? `${userName}'s Drive` : 'My Drive';
     if (state.currentFolderId === undefined) {
-      return 'My Drive';
+      return defaultName;
     }
     const folder = state.allFiles.find((f) => f.id === state.currentFolderId && f.type === 'folder');
-    return folder ? folder.name : 'My Drive';
+    return folder ? folder.name : defaultName;
   },
 
   reset: () => {

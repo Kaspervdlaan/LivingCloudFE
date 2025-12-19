@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { IoFolder, IoFolderOpen } from 'react-icons/io5';
 import { useFilesStore } from '../../../store/useFilesStore';
+import { useAuth } from '../../../contexts/AuthContext';
 import type { File } from '../../../types/file';
 import './_FolderTree.scss';
 
@@ -26,6 +27,7 @@ export function FolderTree({
   onDragLeave,
   dragOverFolderId,
 }: FolderTreeProps) {
+  const { user } = useAuth();
   const navigateToFolder = useFilesStore((state) => state.navigateToFolder);
   const allFiles = useFilesStore((state) => state.allFiles);
   const loadAllFolders = useFilesStore((state) => state.loadAllFolders);
@@ -265,7 +267,7 @@ export function FolderTree({
         ) : (
           <IoFolder size={16} className="folder-tree__icon" />
         )}
-        <span className="folder-tree__name">My Drive</span>
+        <span className="folder-tree__name">{user?.name ? `${user.name}'s Drive` : 'My Drive'}</span>
       </div>
       {folderTree.map((folder) => renderFolder(folder, 0))}
     </div>

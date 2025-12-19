@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useFilesStore } from '../../store/useFilesStore';
+import { useAuth } from '../../contexts/AuthContext';
 import { Layout } from '../../components/layout/Layout/Layout';
 import { FileGrid } from '../../components/files/FileGrid/FileGrid';
 import { FileList } from '../../components/files/FileList/FileList';
@@ -17,6 +18,7 @@ import './_Drive.scss';
 import { useNavigate } from 'react-router-dom';
 
 export function Drive() {
+  const { user } = useAuth();
   const {
     files,
     loading,
@@ -245,13 +247,13 @@ export function Drive() {
               <button
                 className="drive__back-button"
                 onClick={() => navigate('/drive')}
-                title="Go to My Drive"
-                aria-label="Go to My Drive"
+                title={user?.name ? `Go to ${user.name}'s Drive` : 'Go to My Drive'}
+                aria-label={user?.name ? `Go to ${user.name}'s Drive` : 'Go to My Drive'}
               >
                 <Cloud size={24} />
               </button>
             )}
-            <span className="drive__folder-name">{getCurrentFolderName()}</span>
+            <span className="drive__folder-name">{getCurrentFolderName(user?.name)}</span>
           </div>
           <div className="drive__actions">
             <Button
@@ -335,7 +337,8 @@ export function Drive() {
 
   const breadcrumbs = [];
   if (currentFolderId) {
-    breadcrumbs.push({ id: undefined, name: 'My Drive' });
+    const rootName = user?.name ? `${user.name}'s Drive` : 'My Drive';
+    breadcrumbs.push({ id: undefined, name: rootName });
   }
 
   return (
