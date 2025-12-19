@@ -48,15 +48,18 @@
 
 @mixin button-primary {
   @include button-base;
-  background-color: $accent-500;
-  color: white;
+  background-color: $accent-200; // Darker green background
+  color: $accent-500; // Bright green text
+  border: 1px solid $accent-300;
   
   &:hover:not(:disabled) {
-    background-color: $accent-600;
+    background-color: $accent-300;
+    color: $accent-600;
   }
   
   &:active:not(:disabled) {
-    background-color: $accent-700;
+    background-color: $accent-400;
+    color: $accent-700;
   }
 }
 
