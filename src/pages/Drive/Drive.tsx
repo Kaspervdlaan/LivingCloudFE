@@ -8,13 +8,14 @@ import { UserList } from '../../components/files/UserList/UserList';
 import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
+import { TextPreview } from '../../components/files/TextPreview/TextPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2 } from 'lucide-react';
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
-import { isImageFile, isVideoFile } from '../../utils/fileUtils';
+import { isImageFile, isVideoFile, isTextFile } from '../../utils/fileUtils';
 import { api } from '../../utils/api';
 import { authApi } from '../../services/authApi';
 import './_Drive.scss';
@@ -66,6 +67,7 @@ export function Drive() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const [isVideoPreviewOpen, setIsVideoPreviewOpen] = useState(false);
+  const [isTextPreviewOpen, setIsTextPreviewOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -147,6 +149,9 @@ export function Drive() {
     } else if (isVideoFile(file)) {
       setSelectedFile(file);
       setIsVideoPreviewOpen(true);
+    } else if (isTextFile(file)) {
+      setSelectedFile(file);
+      setIsTextPreviewOpen(true);
     }
   };
 
@@ -167,13 +172,32 @@ export function Drive() {
   const confirmDelete = async () => {
     if (fileToDelete) {
       const wasCurrentFolder = fileToDelete.id === currentFolderId && fileToDelete.type === 'folder';
-      await deleteFile(fileToDelete.id);
-      setFileToDelete(null);
+      const wasPreviewed = selectedFile?.id === fileToDelete.id;
       
-      // If we deleted the current folder, navigate to its parent
-      if (wasCurrentFolder) {
-        const parentId = fileToDelete.parentId;
-        navigateToFolder(parentId);
+      // Close any open previews if the deleted file is being previewed
+      if (wasPreviewed) {
+        setIsPhotoPreviewOpen(false);
+        setIsVideoPreviewOpen(false);
+        setIsTextPreviewOpen(false);
+        setSelectedFile(null);
+      }
+      
+      try {
+        await deleteFile(fileToDelete.id);
+        setFileToDelete(null);
+        
+        // If we deleted the current folder, navigate to its parent
+        if (wasCurrentFolder) {
+          const parentId = fileToDelete.parentId;
+          navigateToFolder(parentId);
+        }
+      } catch (err: any) {
+        // Suppress "file not found" errors after successful deletion
+        // The file was deleted, so any subsequent access attempts are expected to fail
+        if (!err.message?.includes('file not found') && !err.message?.includes('File not found')) {
+          console.error('Error during file deletion:', err);
+        }
+        setFileToDelete(null);
       }
     }
   };
@@ -516,6 +540,15 @@ export function Drive() {
         files={files}
         onClose={() => {
           setIsVideoPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <TextPreview
+        isOpen={isTextPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsTextPreviewOpen(false);
           setSelectedFile(null);
         }}
       />

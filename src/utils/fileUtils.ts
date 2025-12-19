@@ -40,6 +40,34 @@ export function isVideoFile(file: { name?: string; mimeType?: string; extension?
   return false;
 }
 
+// Text file extensions
+const TEXT_EXTENSIONS = ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'text'];
+const TEXT_MIME_TYPES = [
+  'text/plain',
+  'text/markdown',
+  'text/csv',
+  'application/json',
+  'text/x-log',
+  'text/x-csv',
+];
+
+export function isTextFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return TEXT_MIME_TYPES.includes(file.mimeType) || file.mimeType.startsWith('text/');
+  }
+  
+  if (file.extension) {
+    return TEXT_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? TEXT_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
 export function getFileExtension(filename: string): string {
   const parts = filename.split('.');
   return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';

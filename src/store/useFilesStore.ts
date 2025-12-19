@@ -171,15 +171,48 @@ export const useFilesStore = create<FilesState>((set, get) => ({
           });
         };
         
+        const updatedAllFiles = removeRecursive(fileId, currentState.allFiles);
+        const updatedFiles = currentState.files.filter((f) => f.id !== fileId && f.parentId !== fileId);
+        
         return {
-          allFiles: removeRecursive(fileId, currentState.allFiles),
+          allFiles: updatedAllFiles,
+          files: updatedFiles,
           loading: false,
+          error: null, // Clear any errors
         };
       });
       
-      // Reload files to refresh the view
-      await get().loadFiles(get().currentFolderId);
+      // Silently reload files to refresh the view (don't show errors if reload fails)
+      // The file was successfully deleted, so reload errors are not critical
+      try {
+        const state = get();
+        const targetUserId = state.viewingUserId;
+        const response = await api.getFiles(state.currentFolderId, targetUserId);
+        const fetchedFiles = response.data;
+        
+        // Update files list without setting error state
+        set((currentState) => {
+          const existingIds = new Set(currentState.allFiles.map((f) => f.id));
+          const newFiles = fetchedFiles.filter((f) => !existingIds.has(f.id));
+          const updatedFiles = currentState.allFiles.map((f) => {
+            const updated = fetchedFiles.find((nf) => nf.id === f.id);
+            return updated || f;
+          });
+          
+          return {
+            allFiles: [...updatedFiles, ...newFiles],
+            files: fetchedFiles,
+            error: null, // Ensure error stays cleared
+          };
+        });
+      } catch (reloadErr: any) {
+        // Silently ignore reload errors after successful deletion
+        // The file was deleted successfully, so reload errors are not critical
+        console.debug('Error reloading files after deletion (non-critical):', reloadErr);
+        // Don't set error state - deletion was successful
+      }
     } catch (err: any) {
+      // Only show error if deletion itself failed
       set({ error: err.message || 'Failed to delete file', loading: false });
     }
   },
