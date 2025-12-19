@@ -11,7 +11,7 @@
 
 .drive__toolbar {
   @include flex-between;
-  padding: $spacing-lg;
+  padding: $spacing-md;
   background-color: $surface;
   border-bottom: 1px solid $border;
 
@@ -20,7 +20,6 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: $spacing-md;
     gap: $spacing-sm;
     border-bottom: none;
     border-top: 1px solid $border;
@@ -53,15 +52,6 @@
   border-radius: $radius-sm;
   transition: all $transition-fast $ease-in-out;
   flex-shrink: 0;
-
-  @media (max-width: $breakpoint-md) {
-    padding: 0.125rem;
-    
-    svg {
-      width: 16px;
-      height: 16px;
-    }
-  }
 
   &:hover {
     background-color: $hover;
@@ -122,17 +112,18 @@
   gap: $spacing-sm;
 
   @media (max-width: $breakpoint-md) {
-    gap: $spacing-sm;
-    padding: $spacing-sm $spacing-md !important;
+    gap: 0;
+    padding: $spacing-sm !important;
     font-size: $font-size-sm !important;
+    min-width: 44px; // Ensure good touch target
 
     svg {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
     }
 
     span {
-      font-size: $font-size-sm;
+      display: none; // Hide text on mobile
     }
   }
 }
