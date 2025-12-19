@@ -81,6 +81,16 @@
     @include input-base;
     padding-left: 48px;
     width: 100%;
+
+    &::selection {
+      background-color: #0066cc;
+      color: #ffffff;
+    }
+
+    &::-moz-selection {
+      background-color: #0066cc;
+      color: #ffffff;
+    }
   }
 }
 
