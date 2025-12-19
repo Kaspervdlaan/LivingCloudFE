@@ -4,6 +4,16 @@
 .btn {
   @include button-base;
   
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-xs;
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+  
   &--primary {
     @include button-primary;
   }

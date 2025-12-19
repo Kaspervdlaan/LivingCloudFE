@@ -52,6 +52,27 @@ export function Drive() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const driveContentRef = useRef<HTMLDivElement>(null);
 
+  // Force grid view on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth <= 768) {
+        setViewMode('grid');
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    // Prevent view mode change on mobile (always grid)
+    if (window.innerWidth <= 768) {
+      return;
+    }
+    setViewMode(mode);
+  };
+
   // Load files on mount and when folder changes
   useEffect(() => {
     loadFiles(currentFolderId).catch(console.error);
@@ -334,7 +355,7 @@ export function Drive() {
     <Layout
       onSearch={handleSearch}
       viewMode={viewMode}
-      onViewModeChange={setViewMode}
+      onViewModeChange={handleViewModeChange}
       onFileDrop={handleFileDrop}
       onDropFiles={handleDropFiles}
       onDragOver={handleDragOver}

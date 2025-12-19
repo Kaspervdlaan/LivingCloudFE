@@ -10,12 +10,23 @@
   padding: $spacing-lg;
   background-color: $surface;
   border-bottom: 1px solid $border;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-sm $spacing-md;
+    gap: $spacing-sm;
+  }
 }
 
 .drive__breadcrumb {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
+
+  @media (max-width: $breakpoint-md) {
+    gap: $spacing-xs;
+    flex: 1;
+    min-width: 0; // Allow truncation
+  }
 }
 
 .drive__back-button {
@@ -31,6 +42,15 @@
   transition: all $transition-fast $ease-in-out;
   flex-shrink: 0;
 
+  @media (max-width: $breakpoint-md) {
+    padding: 0.125rem;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
   &:hover {
     background-color: $hover;
     color: $text-primary;
@@ -45,6 +65,13 @@
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   color: $text-primary;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    @include truncate;
+    max-width: 150px;
+  }
 }
 
 .drive__breadcrumbs {
@@ -70,6 +97,10 @@
   display: flex;
   align-items: center;
   gap: $spacing-md;
+
+  @media (max-width: $breakpoint-md) {
+    gap: $spacing-sm;
+  }
 }
 
 .drive__upload,
@@ -77,6 +108,21 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
+
+  @media (max-width: $breakpoint-md) {
+    gap: $spacing-xs;
+    padding: $spacing-xs $spacing-sm !important;
+    font-size: $font-size-xs !important;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    span {
+      font-size: $font-size-xs;
+    }
+  }
 }
 
 .drive__loading,
