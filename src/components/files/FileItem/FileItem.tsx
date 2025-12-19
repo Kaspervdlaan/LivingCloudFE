@@ -134,10 +134,14 @@ export function FileItem({
       return;
     }
     
-    // In list mode, single click anywhere on the item opens it
+    // In list mode
     if (viewMode === 'list') {
-      // Don't open if clicking on the icon
-      if (!target.closest('.file-item__icon')) {
+      // On mobile, single click anywhere (including icon) opens it
+      if (isMobile) {
+        onDoubleClick?.();
+      }
+      // On desktop, single click anywhere except icon opens it
+      else if (!target.closest('.file-item__icon')) {
         onDoubleClick?.();
       }
     }
