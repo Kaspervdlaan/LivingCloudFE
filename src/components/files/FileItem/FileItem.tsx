@@ -118,6 +118,35 @@ export function FileItem({
     setFileName(file.name);
   };
 
+  const handleNameClick = (e: MouseEvent) => {
+    // Stop propagation so clicking the name doesn't trigger the item click
+    e.stopPropagation();
+  };
+
+  const handleItemClick = (e: React.MouseEvent) => {
+    if (isRenaming) return;
+    
+    const target = e.target as HTMLElement;
+    const isMobile = window.innerWidth <= 768;
+    
+    // Don't open if clicking on the name or menu button
+    if (target.closest('.file-item__name') || target.closest('.file-item__menu')) {
+      return;
+    }
+    
+    // In list mode, single click anywhere on the item opens it
+    if (viewMode === 'list') {
+      // Don't open if clicking on the icon
+      if (!target.closest('.file-item__icon')) {
+        onDoubleClick?.();
+      }
+    }
+    // In grid mode on mobile, single click opens it (for folders and files)
+    else if (viewMode === 'grid' && isMobile) {
+      onDoubleClick?.();
+    }
+  };
+
   const handleRenameFromContextMenu = () => {
     setIsRenaming(true);
     setFileName(file.name);
@@ -253,6 +282,7 @@ export function FileItem({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onContextMenu={handleContextMenu}
+        onClick={handleItemClick}
       >
         <div className="file-item__icon" onDoubleClick={onDoubleClick}>
           {isImageFile(file) && (file.thumbnailUrl || file.downloadUrl) ? (
@@ -286,7 +316,12 @@ export function FileItem({
               onKeyDown={handleKeyDown}
             />
           ) : (
-            <div className="file-item__name" title={file.name} onDoubleClick={handleDoubleClickFileName}>
+            <div 
+              className="file-item__name" 
+              title={file.name} 
+              onClick={handleNameClick}
+              onDoubleClick={handleDoubleClickFileName}
+            >
               {file.name}
             </div>
           )}

@@ -107,10 +107,6 @@
   background-color: $primary-100;
   padding: $spacing-xs;
   border-radius: $radius-md;
-
-  @media (max-width: $breakpoint-md) {
-    display: none;
-  }
 }
 
 .header__view-button {

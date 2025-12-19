@@ -57,24 +57,7 @@ export function Drive() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const driveContentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  // Force grid view on mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      if (window.innerWidth <= 768) {
-        setViewMode('grid');
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   const handleViewModeChange = (mode: 'grid' | 'list') => {
-    // Prevent view mode change on mobile (always grid)
-    if (window.innerWidth <= 768) {
-      return;
-    }
     setViewMode(mode);
   };
 

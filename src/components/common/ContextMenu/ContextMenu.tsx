@@ -34,15 +34,40 @@ export function ContextMenu({ x, y, onClose, children }: ContextMenuProps) {
     };
   }, [onClose]);
 
-  // Adjust position if menu would go off screen
-  const adjustedX = x;
-  const adjustedY = y;
+  // Position menu at bottom-left of click point
+  useEffect(() => {
+    if (menuRef.current) {
+      const menu = menuRef.current;
+      const viewportHeight = window.innerHeight;
+      
+      // Force a layout calculation to get accurate dimensions
+      const rect = menu.getBoundingClientRect();
+      
+      // Calculate position: menu appears below and to the left of click point
+      // Menu's top-right corner aligns with click point
+      let adjustedX = x - rect.width; // Position to the left
+      let adjustedY = y; // Position below
+      
+      // Adjust if menu would go off screen to the left
+      if (adjustedX < 8) {
+        adjustedX = 8; // Keep some padding from left edge
+      }
+      
+      // Adjust if menu would go off screen at bottom
+      if (adjustedY + rect.height > viewportHeight - 8) {
+        adjustedY = viewportHeight - rect.height - 8; // Position above with padding
+      }
+      
+      menu.style.left = `${adjustedX}px`;
+      menu.style.top = `${adjustedY}px`;
+    }
+  }, [x, y]);
 
   return (
     <div
       ref={menuRef}
       className="context-menu"
-      style={{ left: `${adjustedX}px`, top: `${adjustedY}px` }}
+      style={{ left: `${x}px`, top: `${y}px` }}
     >
       {children}
     </div>
