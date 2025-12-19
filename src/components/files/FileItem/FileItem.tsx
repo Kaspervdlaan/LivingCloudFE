@@ -14,6 +14,7 @@ import {
 import { IoFolder, IoFolderOpen } from 'react-icons/io5';
 import type { File } from '../../../types/file';
 import { getFileIconName, isImageFile, formatFileSize } from '../../../utils/fileUtils';
+import { api } from '../../../utils/api';
 import { ContextMenu, ContextMenuItem } from '../../common/ContextMenu/ContextMenu';
 import './_FileItem.scss';
 
@@ -64,12 +65,49 @@ export function FileItem({
   const [isRenaming, setIsRenaming] = useState(false);
   const [fileName, setFileName] = useState(file.name);
   const [isDragging, setIsDragging] = useState(false);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(
+    file.thumbnailUrl?.startsWith('data:') ? file.thumbnailUrl : undefined
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Update fileName when file.name changes (e.g., after rename from context menu)
   useEffect(() => {
     setFileName(file.name);
   }, [file.name]);
+
+  // Load thumbnail with authentication if needed
+  useEffect(() => {
+    if (!isImageFile(file)) return;
+    
+    // If we already have a data URL thumbnail, use it
+    if (file.thumbnailUrl?.startsWith('data:')) {
+      setThumbnailUrl(file.thumbnailUrl);
+      return;
+    }
+
+    // If we don't have a thumbnail URL or it's a regular URL that needs auth, fetch it
+    if (!thumbnailUrl && (file.thumbnailUrl || file.downloadUrl)) {
+      const loadThumbnail = async () => {
+        try {
+          const blob = await api.downloadFile(file.id);
+          const blobUrl = URL.createObjectURL(blob);
+          setThumbnailUrl(blobUrl);
+        } catch (err) {
+          console.error(`Failed to load thumbnail for ${file.id}:`, err);
+        }
+      };
+      loadThumbnail();
+    }
+  }, [file.id, file.thumbnailUrl, file.downloadUrl]);
+
+  // Clean up blob URL on unmount or when file changes
+  useEffect(() => {
+    return () => {
+      if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(thumbnailUrl);
+      }
+    };
+  }, [thumbnailUrl]);
 
   // Auto-enter rename mode if shouldStartRenaming is true
   useEffect(() => {
@@ -289,9 +327,9 @@ export function FileItem({
         onClick={handleItemClick}
       >
         <div className="file-item__icon" onDoubleClick={onDoubleClick}>
-          {isImageFile(file) && (file.thumbnailUrl || file.downloadUrl) ? (
+          {isImageFile(file) && thumbnailUrl ? (
             <img 
-              src={file.thumbnailUrl || file.downloadUrl} 
+              src={thumbnailUrl} 
               alt={file.name} 
               className="file-item__thumbnail"
             />

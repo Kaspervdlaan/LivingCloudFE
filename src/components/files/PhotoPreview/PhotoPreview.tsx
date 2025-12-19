@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import type { File } from '../../../types/file';
 import { isImageFile } from '../../../utils/fileUtils';
+import { api } from '../../../utils/api';
 import './_PhotoPreview.scss';
 
 interface PhotoPreviewProps {
@@ -14,8 +15,10 @@ interface PhotoPreviewProps {
 export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
 
   const imageFiles = files.filter(f => isImageFile(f));
+  const imageFileIds = useMemo(() => imageFiles.map(f => f.id), [imageFiles]);
 
   // Only set index when the file prop changes (initial open), not when navigating
   useEffect(() => {
@@ -30,8 +33,62 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
   useEffect(() => {
     if (!isOpen) {
       setZoom(1);
+      // Clean up blob URLs when preview closes
+      Object.values(imageUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+      setImageUrls({});
     }
   }, [isOpen]);
+
+  // Fetch images with authentication and create blob URLs
+  useEffect(() => {
+    if (!isOpen || imageFiles.length === 0) return;
+
+    const loadImages = async () => {
+      const newUrls: Record<string, string> = {};
+      
+      for (const imageFile of imageFiles) {
+        // Skip if already loaded
+        if (imageUrls[imageFile.id]) {
+          continue;
+        }
+
+        try {
+          // Use thumbnailUrl if it's a data URL, otherwise fetch the file
+          if (imageFile.thumbnailUrl?.startsWith('data:')) {
+            newUrls[imageFile.id] = imageFile.thumbnailUrl;
+          } else {
+            const blob = await api.downloadFile(imageFile.id);
+            const blobUrl = URL.createObjectURL(blob);
+            newUrls[imageFile.id] = blobUrl;
+          }
+        } catch (err) {
+          console.error(`Failed to load image ${imageFile.id}:`, err);
+        }
+      }
+
+      if (Object.keys(newUrls).length > 0) {
+        setImageUrls(prev => ({ ...prev, ...newUrls }));
+      }
+    };
+
+    loadImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, imageFileIds.join(',')]);
+
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(imageUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -96,7 +153,8 @@ export function PhotoPreview({ isOpen, file, files, onClose }: PhotoPreviewProps
   if (!isOpen || !file || imageFiles.length === 0) return null;
 
   const currentFile = imageFiles[currentIndex];
-  const imageUrl = currentFile.thumbnailUrl || currentFile.downloadUrl;
+  // Use blob URL if available, otherwise fall back to thumbnailUrl or downloadUrl (for data URLs)
+  const imageUrl = imageUrls[currentFile.id] || currentFile.thumbnailUrl || currentFile.downloadUrl;
 
   return (
     <div className="photo-preview" onClick={onClose}>

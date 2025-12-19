@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
 import type { File } from '../../types/file';
 import { isImageFile, isVideoFile } from '../../utils/fileUtils';
+import { api } from '../../utils/api';
 import './_Drive.scss';
 import { useNavigate } from 'react-router-dom';
 
@@ -133,35 +134,16 @@ export function Drive() {
 
   const handleFileDownload = async (file: File) => {
     try {
-      const getFileById = useFilesStore.getState().getFileById;
-      const fileData = getFileById(file.id);
-      
-      if (!fileData || !fileData.downloadUrl) {
-        console.error('File not found or no download URL');
-        return;
-      }
-      
-      // If it's a base64 data URL, convert to blob
-      if (fileData.downloadUrl.startsWith('data:')) {
-        const response = await fetch(fileData.downloadUrl);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        // It's already a blob URL
-        const a = document.createElement('a');
-        a.href = fileData.downloadUrl;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      // Use the authenticated API endpoint to download the file
+      const blob = await api.downloadFile(file.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to download file:', err);
     }

@@ -21,6 +21,7 @@ interface FilesState {
   getFileById: (fileId: string) => File | undefined;
   getCurrentFolderName: () => string;
   loadAllFolders: () => Promise<void>; // Load all folders for tree view
+  reset: () => void; // Reset store to initial state (used on logout)
 }
 
 export const useFilesStore = create<FilesState>((set, get) => ({
@@ -260,5 +261,15 @@ export const useFilesStore = create<FilesState>((set, get) => ({
     }
     const folder = state.allFiles.find((f) => f.id === state.currentFolderId && f.type === 'folder');
     return folder ? folder.name : 'My Drive';
+  },
+
+  reset: () => {
+    set({
+      files: [],
+      allFiles: [],
+      currentFolderId: undefined,
+      loading: false,
+      error: null,
+    });
   },
 }));

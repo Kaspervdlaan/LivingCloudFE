@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import type { File } from '../../../types/file';
 import { isVideoFile } from '../../../utils/fileUtils';
+import { api } from '../../../utils/api';
 import './_VideoPreview.scss';
 
 interface VideoPreviewProps {
@@ -16,9 +17,11 @@ export function VideoPreview({ isOpen, file, files, onClose }: VideoPreviewProps
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
+  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const videoFiles = files.filter(f => isVideoFile(f));
+  const videoFileIds = useMemo(() => videoFiles.map(f => f.id), [videoFiles]);
 
   // Only set index when the file prop changes (initial open), not when navigating
   useEffect(() => {
@@ -39,8 +42,57 @@ export function VideoPreview({ isOpen, file, files, onClose }: VideoPreviewProps
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
       }
+      // Clean up blob URLs when preview closes
+      Object.values(videoUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+      setVideoUrls({});
     }
   }, [isOpen]);
+
+  // Fetch videos with authentication and create blob URLs
+  useEffect(() => {
+    if (!isOpen || videoFiles.length === 0) return;
+
+    const loadVideos = async () => {
+      const newUrls: Record<string, string> = {};
+      
+      for (const videoFile of videoFiles) {
+        // Skip if already loaded
+        if (videoUrls[videoFile.id]) {
+          continue;
+        }
+
+        try {
+          const blob = await api.downloadFile(videoFile.id);
+          const blobUrl = URL.createObjectURL(blob);
+          newUrls[videoFile.id] = blobUrl;
+        } catch (err) {
+          console.error(`Failed to load video ${videoFile.id}:`, err);
+        }
+      }
+
+      if (Object.keys(newUrls).length > 0) {
+        setVideoUrls(prev => ({ ...prev, ...newUrls }));
+      }
+    };
+
+    loadVideos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, videoFileIds.join(',')]);
+
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(videoUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,7 +208,8 @@ export function VideoPreview({ isOpen, file, files, onClose }: VideoPreviewProps
   if (!isOpen || !file || videoFiles.length === 0) return null;
 
   const currentFile = videoFiles[currentIndex];
-  const videoUrl = currentFile.downloadUrl;
+  // Use blob URL if available, otherwise fall back to downloadUrl
+  const videoUrl = videoUrls[currentFile.id] || currentFile.downloadUrl;
 
   return (
     <div className="video-preview" onClick={onClose}>

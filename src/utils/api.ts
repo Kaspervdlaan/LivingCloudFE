@@ -105,7 +105,7 @@ export const api = {
    * Create folder
    */
   async createFolder(request: CreateFolderRequest): Promise<APIResponse<Folder>> {
-    const response = await fetch(getApiUrl('folders'), {
+    const response = await fetch(getApiUrl('files/folders'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

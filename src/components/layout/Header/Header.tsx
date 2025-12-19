@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { Search, Grid, List, Cloud, Palette, ChevronDown, LogOut, User, Menu, X } from 'lucide-react';
 import { useTheme, type Theme } from '../../../contexts/ThemeContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useFilesStore } from '../../../store/useFilesStore';
 import { useNavigate } from 'react-router-dom';
 import './_Header.scss';
 
@@ -19,6 +20,7 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
   const themeDropdownRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
+  const resetFilesStore = useFilesStore((state) => state.reset);
   const navigate = useNavigate();
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +52,7 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
   };
 
   const handleLogout = () => {
+    resetFilesStore(); // Clear files store before logout
     logout();
     navigate('/');
   };
