@@ -19,7 +19,7 @@ interface FilesState {
   refreshFiles: () => Promise<void>;
   getAllFolders: () => File[];
   getFileById: (fileId: string) => File | undefined;
-  getCurrentFolderName: () => string;
+  getCurrentFolderName: (userName?: string) => string;
   loadAllFolders: () => Promise<void>; // Load all folders for tree view
   reset: () => void; // Reset store to initial state (used on logout)
 }
