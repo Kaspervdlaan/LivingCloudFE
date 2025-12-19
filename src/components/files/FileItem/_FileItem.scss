@@ -133,7 +133,7 @@
   }
 
   .file-item--list & {
-    max-width: 150px;
+    max-width: fit-content;
   }
 }
 
@@ -163,7 +163,7 @@
   
   .file-item--list & {
     text-align: left;
-    max-width: 150px;
+    max-width: fit-content;
   }
   
   &--editing {
