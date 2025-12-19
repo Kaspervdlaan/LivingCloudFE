@@ -494,6 +494,8 @@ export function Drive() {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       dragOverFolderId={dragOverFolderId}
+      users={user?.role === 'admin' ? allUsers : undefined}
+      onUserClick={handleUserClick}
     >
       <DropZone>
         <DriveContent />
