@@ -55,7 +55,6 @@ export function Drive() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const driveContentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const handleViewModeChange = (mode: 'grid' | 'list') => {
     setViewMode(mode);
@@ -247,7 +246,6 @@ export function Drive() {
     return (
       <div 
         className="drive" 
-        ref={driveContentRef}
         onContextMenu={handleContextMenu}
       >
         <div className="drive__toolbar">

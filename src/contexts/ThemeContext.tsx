@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-export type Theme = 'hacker' | 'minimal' | 'dark' | 'ocean' | 'sunset' | 'forest';
+export type Theme = 'hacker' | 'minimal' | 'dark' | 'ocean' | 'sunset' | 'forest' | 'deepForest';
 
 interface ThemeContextType {
   theme: Theme;
@@ -21,6 +21,7 @@ const THEME_FAVICON_COLORS: Record<Theme, string> = {
   ocean: '#2196f3',      // Blue
   sunset: '#ff6b6b',     // Red/Pink
   forest: '#22c55e',     // Green
+  deepForest: '#22c55e', // Forest Green
 };
 
 // Generate SVG favicon with theme color
@@ -68,7 +69,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // Load theme from localStorage on mount
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-      const validThemes: Theme[] = ['hacker', 'minimal', 'dark', 'ocean', 'sunset', 'forest'];
+      const validThemes: Theme[] = ['hacker', 'minimal', 'dark', 'ocean', 'sunset', 'forest', 'deepForest'];
       if (stored && validThemes.includes(stored)) {
         return stored;
       }
@@ -90,7 +91,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   };
 
   const toggleTheme = () => {
-    const themes: Theme[] = ['minimal', 'dark', 'ocean', 'sunset', 'forest', 'hacker'];
+    const themes: Theme[] = ['minimal', 'dark', 'ocean', 'sunset', 'forest', 'deepForest', 'hacker'];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setThemeState(themes[nextIndex]);

@@ -61,6 +61,7 @@ export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, 
     ocean: 'Ocean Breeze',
     sunset: 'Sunset Warmth',
     forest: 'Forest Green',
+    deepForest: 'Deep Forest',
   };
 
   return (

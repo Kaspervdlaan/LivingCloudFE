@@ -34,23 +34,24 @@ export function ContextMenu({ x, y, onClose, children }: ContextMenuProps) {
     };
   }, [onClose]);
 
-  // Position menu at bottom-left of click point
+  // Position menu at bottom-right of click point
   useEffect(() => {
     if (menuRef.current) {
       const menu = menuRef.current;
+      const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
       // Force a layout calculation to get accurate dimensions
       const rect = menu.getBoundingClientRect();
       
-      // Calculate position: menu appears below and to the left of click point
-      // Menu's top-right corner aligns with click point
-      let adjustedX = x - rect.width; // Position to the left
+      // Calculate position: menu appears below and to the right of click point
+      // Menu's top-left corner aligns with click point
+      let adjustedX = x; // Position to the right
       let adjustedY = y; // Position below
       
-      // Adjust if menu would go off screen to the left
-      if (adjustedX < 8) {
-        adjustedX = 8; // Keep some padding from left edge
+      // Adjust if menu would go off screen to the right
+      if (adjustedX + rect.width > viewportWidth - 8) {
+        adjustedX = viewportWidth - rect.width - 8; // Keep some padding from right edge
       }
       
       // Adjust if menu would go off screen at bottom
