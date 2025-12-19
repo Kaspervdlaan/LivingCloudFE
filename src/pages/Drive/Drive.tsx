@@ -40,7 +40,7 @@ export function Drive() {
 
   // Load files on mount and when folder changes
   useEffect(() => {
-    loadFiles(currentFolderId);
+    loadFiles(currentFolderId).catch(console.error);
   }, [currentFolderId, loadFiles]);
 
   useEffect(() => {

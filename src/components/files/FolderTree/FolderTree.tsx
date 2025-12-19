@@ -27,7 +27,13 @@ export function FolderTree({
 }: FolderTreeProps) {
   const navigateToFolder = useFilesStore((state) => state.navigateToFolder);
   const allFiles = useFilesStore((state) => state.allFiles);
+  const loadAllFolders = useFilesStore((state) => state.loadAllFolders);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
+
+  // Load all folders on mount for tree view
+  useEffect(() => {
+    loadAllFolders().catch(console.error);
+  }, [loadAllFolders]);
 
   // Build hierarchical tree structure
   const folderTree = useMemo(() => {

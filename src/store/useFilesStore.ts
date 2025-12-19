@@ -1,81 +1,88 @@
 import { create } from 'zustand';
 import type { File, CreateFolderRequest } from '../types/file';
-
-// Helper to generate unique ID
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
+import { api } from '../utils/api';
 
 interface FilesState {
   files: File[];
-  allFiles: File[]; // All files and folders for tree building
+  allFiles: File[]; // All files and folders for tree building (cached)
   currentFolderId: string | undefined;
   loading: boolean;
   error: string | null;
-  loadFiles: (parentId?: string) => void;
+  loadFiles: (parentId?: string) => Promise<void>;
   uploadFiles: (files: FileList | globalThis.File[], parentId?: string) => Promise<void>;
-  createFolder: (request: CreateFolderRequest) => void;
-  deleteFile: (fileId: string) => void;
-  renameFile: (fileId: string, newName: string) => void;
-  moveFile: (fileId: string, destinationId: string | undefined) => void;
-  copyFile: (fileId: string, destinationId: string) => void;
-  navigateToFolder: (folderId: string | undefined) => void;
-  refreshFiles: () => void;
+  createFolder: (request: CreateFolderRequest) => Promise<void>;
+  deleteFile: (fileId: string) => Promise<void>;
+  renameFile: (fileId: string, newName: string) => Promise<void>;
+  moveFile: (fileId: string, destinationId: string | undefined) => Promise<void>;
+  copyFile: (fileId: string, destinationId: string) => Promise<void>;
+  navigateToFolder: (folderId: string | undefined) => Promise<void>;
+  refreshFiles: () => Promise<void>;
   getAllFolders: () => File[];
   getFileById: (fileId: string) => File | undefined;
   getCurrentFolderName: () => string;
+  loadAllFolders: () => Promise<void>; // Load all folders for tree view
 }
-
-// Initialize with sample data
-const initializeSampleData = (): File[] => {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: generateId(),
-      name: 'Documents',
-      type: 'folder',
-      parentId: undefined,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: generateId(),
-      name: 'Pictures',
-      type: 'folder',
-      parentId: undefined,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
-};
 
 export const useFilesStore = create<FilesState>((set, get) => ({
   files: [],
-  allFiles: initializeSampleData(), // Initialize with sample folders
+  allFiles: [], // Start empty, will be loaded from API
   currentFolderId: undefined,
   loading: false,
   error: null,
 
-  loadFiles: (parentId?: string) => {
-    const state = get();
-    // Filter files by parentId from allFiles, excluding the 'root' folder
-    const filteredFiles = state.allFiles.filter((f) => {
-      // Exclude the root folder (id: 'root') from being displayed
-      if (f.id === 'root') {
-        return false;
-      }
-      if (parentId === undefined) {
-        // Root level: files with no parentId
-        return f.parentId === undefined;
-      }
-      return f.parentId === parentId;
-    });
-    
-    set({ 
-      files: filteredFiles, 
-      currentFolderId: parentId, 
-      loading: false 
-    });
+  loadFiles: async (parentId?: string) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.getFiles(parentId);
+      const fetchedFiles = response.data;
+      
+      // Update allFiles cache with fetched files
+      set((currentState) => {
+        const existingIds = new Set(currentState.allFiles.map((f) => f.id));
+        const newFiles = fetchedFiles.filter((f) => !existingIds.has(f.id));
+        const updatedFiles = currentState.allFiles.map((f) => {
+          const updated = fetchedFiles.find((nf) => nf.id === f.id);
+          return updated || f;
+        });
+        
+        return {
+          allFiles: [...updatedFiles, ...newFiles],
+          files: fetchedFiles,
+          currentFolderId: parentId,
+          loading: false,
+        };
+      });
+    } catch (err: any) {
+      set({
+        error: err.message || 'Failed to load files',
+        loading: false,
+      });
+    }
+  },
+
+  loadAllFolders: async () => {
+    try {
+      // Fetch all files to get all folders for tree view
+      const response = await api.getFiles();
+      const allItems = response.data;
+      
+      // Also try to get files from common parent folders to build complete tree
+      // For now, we'll update allFiles with what we have
+      set((currentState) => {
+        const existingIds = new Set(currentState.allFiles.map((f) => f.id));
+        const newItems = allItems.filter((f) => !existingIds.has(f.id));
+        const updatedItems = currentState.allFiles.map((f) => {
+          const updated = allItems.find((nf) => nf.id === f.id);
+          return updated || f;
+        });
+        
+        return {
+          allFiles: [...updatedItems, ...newItems],
+        };
+      });
+    } catch (err: any) {
+      console.error('Failed to load all folders:', err);
+    }
   },
 
   uploadFiles: async (fileList: FileList | globalThis.File[], parentId?: string) => {
@@ -84,217 +91,156 @@ export const useFilesStore = create<FilesState>((set, get) => ({
       const state = get();
       const targetParentId = parentId !== undefined ? parentId : (state.currentFolderId || undefined);
       
-      // Convert FileList to array
-      const fileArray = fileList instanceof FileList ? Array.from(fileList) : fileList;
-      const now = new Date().toISOString();
-      const newFiles: File[] = [];
+      const response = await api.uploadFiles(fileList, targetParentId);
+      const uploadedFiles = response.data;
       
-      // Process each file
-      for (const domFile of fileArray) {
-        // Generate unique ID
-        const fileId = generateId();
-        
-        // Create file data object
-        const fileData: File = {
-          id: fileId,
-          name: domFile.name,
-          type: 'file',
-          parentId: targetParentId,
-          size: domFile.size,
-          mimeType: domFile.type,
-          extension: domFile.name.split('.').pop()?.toLowerCase(),
-          createdAt: now,
-          updatedAt: now,
-        };
-        
-        // Read file content for small files (< 5MB), create blob URL for larger files
-        if (domFile.size < 5 * 1024 * 1024) {
-          try {
-            const reader = new FileReader();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = () => reject(new Error('Failed to read file'));
-              reader.readAsDataURL(domFile);
-            });
-            fileData.downloadUrl = base64;
-          } catch (err) {
-            // If reading fails, create blob URL instead
-            fileData.downloadUrl = URL.createObjectURL(domFile);
-          }
-        } else {
-          fileData.downloadUrl = URL.createObjectURL(domFile);
-        }
-        
-        // Set thumbnail for images
-        if (domFile.type.startsWith('image/')) {
-          fileData.thumbnailUrl = fileData.downloadUrl;
-        }
-        
-        newFiles.push(fileData);
-      }
-      
-      // Add new files to allFiles
+      // Update allFiles cache
       set((currentState) => ({
-        allFiles: [...currentState.allFiles, ...newFiles],
+        allFiles: [...currentState.allFiles, ...uploadedFiles],
         loading: false,
       }));
       
       // Reload files to show only files in current folder
-      get().loadFiles(targetParentId);
+      await get().loadFiles(targetParentId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to upload files', loading: false });
     }
   },
 
-  createFolder: (request: CreateFolderRequest) => {
-    const state = get();
+  createFolder: async (request: CreateFolderRequest) => {
     set({ loading: true, error: null });
-    
     try {
+      const state = get();
       const targetParentId = request.parentId !== undefined ? request.parentId : (state.currentFolderId || undefined);
-      const now = new Date().toISOString();
       
-      const newFolder: File = {
-        id: generateId(),
-        name: request.name,
-        type: 'folder',
+      const folderRequest = {
+        ...request,
         parentId: targetParentId,
-        createdAt: now,
-        updatedAt: now,
       };
       
-      // Add new folder to allFiles
+      const response = await api.createFolder(folderRequest);
+      const newFolder = response.data;
+      
+      // Update allFiles cache
       set((currentState) => ({
         allFiles: [...currentState.allFiles, newFolder],
         loading: false,
       }));
       
       // Reload files to show only files in current folder
-      get().loadFiles(targetParentId);
+      await get().loadFiles(targetParentId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to create folder', loading: false });
     }
   },
 
-  deleteFile: (fileId: string) => {
+  deleteFile: async (fileId: string) => {
     set({ loading: true, error: null });
-    
     try {
-      // Remove file and all children recursively
-      const removeRecursive = (id: string, files: File[]): File[] => {
-        return files.filter((f) => {
-          if (f.id === id) {
-            return false;
-          }
-          // Also remove children
-          if (f.parentId === id) {
-            return false;
-          }
-          return true;
-        }).map((f) => {
-          // Recursively remove children of children
-          if (f.parentId === id) {
-            return removeRecursive(f.id, [f])[0];
-          }
-          return f;
-        });
-      };
+      await api.deleteFile(fileId);
       
-      set((currentState) => ({
-        allFiles: removeRecursive(fileId, currentState.allFiles),
-        loading: false,
-      }));
+      // Remove from allFiles cache (recursive removal handled by backend)
+      set((currentState) => {
+        const removeRecursive = (id: string, files: File[]): File[] => {
+          return files.filter((f) => {
+            if (f.id === id) {
+              return false;
+            }
+            // Also remove children
+            if (f.parentId === id) {
+              return false;
+            }
+            return true;
+          }).map((f) => {
+            // Recursively remove children of children
+            if (f.parentId === id) {
+              return removeRecursive(f.id, [f])[0];
+            }
+            return f;
+          });
+        };
+        
+        return {
+          allFiles: removeRecursive(fileId, currentState.allFiles),
+          loading: false,
+        };
+      });
       
       // Reload files to refresh the view
-      get().loadFiles(get().currentFolderId);
+      await get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to delete file', loading: false });
     }
   },
 
-  renameFile: (fileId: string, newName: string) => {
+  renameFile: async (fileId: string, newName: string) => {
     set({ loading: true, error: null });
-    
     try {
+      const response = await api.renameFile(fileId, newName);
+      const updatedFile = response.data;
+      
+      // Update allFiles cache
       set((currentState) => ({
         allFiles: currentState.allFiles.map((f) =>
-          f.id === fileId ? { ...f, name: newName, updatedAt: new Date().toISOString() } : f
+          f.id === fileId ? updatedFile : f
         ),
         loading: false,
       }));
       
       // Reload files to refresh the view
-      get().loadFiles(get().currentFolderId);
+      await get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to rename file', loading: false });
     }
   },
 
-  moveFile: (fileId: string, destinationId: string | undefined) => {
+  moveFile: async (fileId: string, destinationId: string | undefined) => {
     set({ loading: true, error: null });
-    
     try {
-      // Update allFiles with new parentId
-      const state = get();
-      const updatedAllFiles = state.allFiles.map((f) =>
-        f.id === fileId ? { ...f, parentId: destinationId, updatedAt: new Date().toISOString() } : f
-      );
+      const response = await api.moveFile(fileId, destinationId);
+      const updatedFile = response.data;
       
-      // Update state
-      set({
-        allFiles: updatedAllFiles,
+      // Update allFiles cache
+      set((currentState) => ({
+        allFiles: currentState.allFiles.map((f) =>
+          f.id === fileId ? updatedFile : f
+        ),
         loading: false,
-      });
+      }));
       
       // Reload files for current folder to reflect the change
-      const currentState = get();
-      currentState.loadFiles(currentState.currentFolderId);
+      await get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to move file', loading: false });
     }
   },
 
-  copyFile: (fileId: string, destinationId: string) => {
+  copyFile: async (fileId: string, destinationId: string) => {
     set({ loading: true, error: null });
-    
     try {
-      const state = get();
-      const fileToCopy = state.allFiles.find((f) => f.id === fileId);
+      const response = await api.copyFile(fileId, destinationId);
+      const copiedFile = response.data;
       
-      if (!fileToCopy) {
-        set({ error: 'File not found', loading: false });
-        return;
-      }
-      
-      const now = new Date().toISOString();
-      const copiedFile: File = {
-        ...fileToCopy,
-        id: generateId(),
-        name: `${fileToCopy.name} (copy)`,
-        parentId: destinationId,
-        createdAt: now,
-        updatedAt: now,
-      };
-      
+      // Update allFiles cache
       set((currentState) => ({
         allFiles: [...currentState.allFiles, copiedFile],
         loading: false,
       }));
       
       // Reload files to refresh the view
-      get().loadFiles(get().currentFolderId);
+      await get().loadFiles(get().currentFolderId);
     } catch (err: any) {
       set({ error: err.message || 'Failed to copy file', loading: false });
     }
   },
 
-  navigateToFolder: (folderId: string | undefined) => {
-    get().loadFiles(folderId);
+  navigateToFolder: async (folderId: string | undefined) => {
+    await get().loadFiles(folderId);
   },
 
-  refreshFiles: () => {
+  refreshFiles: async () => {
     const state = get();
-    get().loadFiles(state.currentFolderId);
+    await get().loadFiles(state.currentFolderId);
   },
 
   getAllFolders: () => {
