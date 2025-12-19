@@ -3,6 +3,7 @@ import { useFilesStore } from '../../../store/useFilesStore';
 import './_Sidebar.scss';
 
 interface SidebarProps {
+  isOpen?: boolean;
   onFileDrop?: (draggedFileId: string, targetFolderId: string | undefined) => void;
   onDropFiles?: (files: FileList, targetFolderId: string | undefined) => void;
   onDragOver?: (folderId: string | undefined) => void;
@@ -11,6 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({
+  isOpen = true,
   onFileDrop,
   onDropFiles,
   onDragOver,
@@ -20,7 +22,7 @@ export function Sidebar({
   const currentFolderId = useFilesStore((state) => state.currentFolderId);
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : 'sidebar--closed'}`}>
       <div className="sidebar__section">
         <h3 className="sidebar__title">Folders</h3>
         <FolderTree

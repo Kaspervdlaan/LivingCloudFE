@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Search, Grid, List, Cloud, Palette, ChevronDown, LogOut, User } from 'lucide-react';
+import { Search, Grid, List, Cloud, Palette, ChevronDown, LogOut, User, Menu, X } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,9 +9,11 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
 }
 
-export function Header({ onSearch, viewMode, onViewModeChange }: HeaderProps) {
+export function Header({ onSearch, viewMode, onViewModeChange, onToggleSidebar, isSidebarOpen }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
@@ -59,6 +61,16 @@ export function Header({ onSearch, viewMode, onViewModeChange }: HeaderProps) {
 
   return (
     <header className="header">
+      {onToggleSidebar && (
+        <button
+          className="header__menu-button"
+          onClick={onToggleSidebar}
+          title={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      )}
       <div className="header__brand">
         <Cloud size={24} />
         <span>LivingCloud</span>

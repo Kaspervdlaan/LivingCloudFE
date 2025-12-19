@@ -7,10 +7,55 @@
   border-right: 1px solid $border;
   overflow-y: auto;
   flex-shrink: 0;
+  transition: transform $transition-base $ease-in-out, width $transition-base $ease-in-out;
+  position: relative;
+  z-index: 100;
+
+  @media (max-width: $breakpoint-md) {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    box-shadow: $shadow-strong;
+
+    &--open {
+      transform: translateX(0);
+    }
+
+    &--closed {
+      transform: translateX(-100%);
+    }
+  }
+
+  @media (min-width: $breakpoint-md + 1px) {
+    &--closed {
+      width: 0;
+      min-width: 0;
+      border-right: none;
+      overflow: hidden;
+      padding: 0;
+    }
+  }
 }
 
 .sidebar__section {
   padding: $spacing-md 0;
+  min-width: 240px;
+  transition: opacity $transition-base $ease-in-out;
+
+  @media (max-width: $breakpoint-md) {
+    padding-top: $spacing-xl; // Extra space for mobile header
+  }
+
+  @media (min-width: $breakpoint-md + 1px) {
+    .sidebar--closed & {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
 }
 
 .sidebar__title {
@@ -21,5 +66,6 @@
   letter-spacing: 0.5px;
   padding: 0 $spacing-lg $spacing-sm;
   margin: 0;
+  white-space: nowrap;
 }
 

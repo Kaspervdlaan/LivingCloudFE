@@ -7,6 +7,36 @@
   background-color: $surface;
   border-bottom: 1px solid $border;
   gap: $spacing-lg;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-sm $spacing-md;
+    gap: $spacing-sm;
+  }
+}
+
+.header__menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xs;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-primary;
+  border-radius: $radius-sm;
+  transition: background-color $transition-fast $ease-in-out;
+
+  @media (max-width: $breakpoint-md) {
+    display: flex;
+  }
+
+  &:hover {
+    background-color: $hover;
+  }
+
+  &:active {
+    background-color: $primary-300;
+  }
 }
 
 .header__brand {
@@ -22,6 +52,11 @@
     color: $accent-500;
     flex-shrink: 0;
   }
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-size-lg;
+    min-width: auto;
+  }
 }
 
 .header__search {
@@ -30,6 +65,11 @@
   position: relative;
   display: flex;
   align-items: center;
+
+  @media (max-width: $breakpoint-md) {
+    max-width: none;
+    flex: 1;
+  }
 }
 
 .header__search-icon {
@@ -48,6 +88,10 @@
 .header__actions {
   @include flex-center;
   gap: $spacing-md;
+
+  @media (max-width: $breakpoint-md) {
+    gap: $spacing-sm;
+  }
 }
 
 .header__button {
@@ -110,6 +154,10 @@
 
 .header__theme-name {
   font-weight: $font-weight-medium;
+
+  @media (max-width: $breakpoint-md) {
+    display: none; // Hide theme name on mobile, show only icon
+  }
 }
 
 .header__theme-chevron {
@@ -167,8 +215,11 @@
   padding: $spacing-xs $spacing-sm;
   color: $text-secondary;
   font-size: $font-size-sm;
-}
 
+  @media (max-width: $breakpoint-md) {
+    display: none; // Hide user name on mobile to save space
+  }
+}
 .header__user-name {
   font-weight: $font-weight-medium;
   max-width: 150px;
