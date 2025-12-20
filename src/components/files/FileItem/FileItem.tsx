@@ -335,7 +335,7 @@ export function FileItem({
                 className="file-item__thumbnail"
               />
             ) : (
-              <Icon size={viewMode === 'grid' ? 64 : 32} />
+              <Icon size={viewMode === 'grid' ? 64 : 24} />
             )}
           </div>
           <div className="file-item__info">
@@ -375,7 +375,7 @@ export function FileItem({
             </div>
           </div>
         <button className="file-item__menu" onClick={handleContextMenu}>
-          <MoreVertical size={14} />
+          <MoreVertical size={18} />
         </button>
       </div>
       {contextMenu && (
