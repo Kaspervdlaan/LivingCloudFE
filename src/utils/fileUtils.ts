@@ -40,6 +40,44 @@ export function isVideoFile(file: { name?: string; mimeType?: string; extension?
   return false;
 }
 
+// Audio file extensions
+const AUDIO_EXTENSIONS = ['mp3', 'wav', 'ogg', 'oga', 'aac', 'm4a', 'flac', 'wma', 'opus', 'webm'];
+const AUDIO_MIME_TYPES = [
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/wave',
+  'audio/x-wav',
+  'audio/ogg',
+  'audio/vorbis',
+  'audio/aac',
+  'audio/mp4',
+  'audio/x-m4a',
+  'audio/flac',
+  'audio/x-flac',
+  'audio/wma',
+  'audio/x-ms-wma',
+  'audio/opus',
+  'audio/webm',
+];
+
+export function isAudioFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return AUDIO_MIME_TYPES.includes(file.mimeType) || file.mimeType.startsWith('audio/');
+  }
+  
+  if (file.extension) {
+    return AUDIO_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? AUDIO_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
 // Text file extensions
 const TEXT_EXTENSIONS = ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'text'];
 const TEXT_MIME_TYPES = [
@@ -198,8 +236,8 @@ export function isCsvFile(file: { name?: string; mimeType?: string; extension?: 
 }
 
 export function isTextFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
-  // Exclude markdown, csv, and code files (they have their own previews or special handling)
-  if (isMarkdownFile(file) || isCsvFile(file) || isCodeFile(file)) {
+  // Exclude markdown, csv, code, and audio files (they have their own previews or special handling)
+  if (isMarkdownFile(file) || isCsvFile(file) || isCodeFile(file) || isAudioFile(file)) {
     return false;
   }
   

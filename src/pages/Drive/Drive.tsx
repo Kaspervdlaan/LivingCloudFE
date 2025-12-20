@@ -8,6 +8,7 @@ import { UserList } from '../../components/files/UserList/UserList';
 import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone';
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
+import { AudioPreview } from '../../components/files/AudioPreview/AudioPreview';
 import { TextPreview } from '../../components/files/TextPreview/TextPreview';
 import { PdfPreview } from '../../components/files/PdfPreview/PdfPreview';
 import { DocumentPreview } from '../../components/files/DocumentPreview/DocumentPreview';
@@ -20,7 +21,7 @@ import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
-import { isImageFile, isVideoFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile, isCodeFile } from '../../utils/fileUtils';
+import { isImageFile, isVideoFile, isAudioFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile, isCodeFile } from '../../utils/fileUtils';
 import { api } from '../../utils/api';
 import { authApi } from '../../services/authApi';
 import './_Drive.scss';
@@ -76,6 +77,7 @@ export function Drive() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const [isVideoPreviewOpen, setIsVideoPreviewOpen] = useState(false);
+  const [isAudioPreviewOpen, setIsAudioPreviewOpen] = useState(false);
   const [isTextPreviewOpen, setIsTextPreviewOpen] = useState(false);
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [isDocumentPreviewOpen, setIsDocumentPreviewOpen] = useState(false);
@@ -164,6 +166,9 @@ export function Drive() {
     } else if (isVideoFile(file)) {
       setSelectedFile(file);
       setIsVideoPreviewOpen(true);
+    } else if (isAudioFile(file)) {
+      setSelectedFile(file);
+      setIsAudioPreviewOpen(true);
     } else if (isPdfFile(file)) {
       setSelectedFile(file);
       setIsPdfPreviewOpen(true);
@@ -209,6 +214,7 @@ export function Drive() {
       if (wasPreviewed) {
         setIsPhotoPreviewOpen(false);
         setIsVideoPreviewOpen(false);
+        setIsAudioPreviewOpen(false);
         setIsTextPreviewOpen(false);
         setIsPdfPreviewOpen(false);
         setIsDocumentPreviewOpen(false);
@@ -574,6 +580,15 @@ export function Drive() {
         files={files}
         onClose={() => {
           setIsVideoPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <AudioPreview
+        isOpen={isAudioPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsAudioPreviewOpen(false);
           setSelectedFile(null);
         }}
       />
