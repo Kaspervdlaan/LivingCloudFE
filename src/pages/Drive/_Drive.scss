@@ -76,6 +76,23 @@
   }
 }
 
+.drive__folder-name-input {
+  @include input-base;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  padding: $spacing-xs $spacing-sm;
+  max-width: 300px;
+  background-color: $surface;
+  border: 1px solid $accent-500;
+  border-radius: $radius-sm;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    max-width: 150px;
+  }
+}
+
 .drive__breadcrumbs {
   display: flex;
   align-items: center;

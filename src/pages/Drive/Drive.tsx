@@ -17,7 +17,7 @@ import { CsvPreview } from '../../components/files/CsvPreview/CsvPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud, Pencil, Trash2 } from 'lucide-react';
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
@@ -86,6 +86,7 @@ export function Drive() {
   const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [folderContextMenu, setFolderContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -364,6 +365,22 @@ export function Drive() {
     }
   };
 
+  const handleFolderCogClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const buttonRect = e.currentTarget.getBoundingClientRect();
+    setFolderContextMenu({
+      x: buttonRect.right,
+      y: buttonRect.bottom + 4,
+    });
+  };
+
+  const handleRenameFolder = () => {
+    if (currentFolderId) {
+      setFileToRename(currentFolderId);
+      setFolderContextMenu(null);
+    }
+  };
+
   const handleDeleteCurrentFolder = () => {
     if (currentFolderId) {
       const currentFolder = getFileById(currentFolderId);
@@ -371,6 +388,7 @@ export function Drive() {
         setFileToDelete(currentFolder);
       }
     }
+    setFolderContextMenu(null);
   };
 
   // Check if admin is at root level (should show user list)
@@ -419,21 +437,51 @@ export function Drive() {
                 <Cloud size={24} />
               </button>
             )}
-            <span className="drive__folder-name">
-              {isAdminAtRoot 
-                ? 'All Users' 
-                : viewingUser 
-                  ? `${viewingUser.name || viewingUser.email}'s Drive`
-                  : getCurrentFolderName(user?.name)
-              }
-            </span>
+            {fileToRename === currentFolderId && currentFolder ? (
+              <input
+                type="text"
+                className="drive__folder-name-input"
+                defaultValue={currentFolder.name}
+                autoFocus
+                onBlur={(e) => {
+                  const newName = e.target.value.trim();
+                  if (newName && newName !== currentFolder.name) {
+                    handleDoubleClickFileName(currentFolder, newName);
+                  } else {
+                    setFileToRename(null);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const newName = e.currentTarget.value.trim();
+                    if (newName && newName !== currentFolder.name) {
+                      handleDoubleClickFileName(currentFolder, newName);
+                    } else {
+                      setFileToRename(null);
+                    }
+                  } else if (e.key === 'Escape') {
+                    setFileToRename(null);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <span className="drive__folder-name">
+                {isAdminAtRoot 
+                  ? 'All Users' 
+                  : viewingUser 
+                    ? `${viewingUser.name || viewingUser.email}'s Drive`
+                    : getCurrentFolderName(user?.name)
+                }
+              </span>
+            )}
             {currentFolder && currentFolder.type === 'folder' && (
                 <Button
                   variant="ghost"
-                  onClick={handleDeleteCurrentFolder}
+                  onClick={handleFolderCogClick}
                   className="drive__delete-folder"
-                  title={`Delete folder "${currentFolder.name}"`}
-                  aria-label={`Delete folder "${currentFolder.name}"`}
+                  title={`Folder options for "${currentFolder.name}"`}
+                  aria-label={`Folder options for "${currentFolder.name}"`}
                 >
                   <HiOutlineCog6Tooth size={20} />
                 </Button>
@@ -647,6 +695,22 @@ export function Drive() {
           <ContextMenuItem onClick={handleCreateFolderFromContext}>
             <FolderPlus size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
             New Folder
+          </ContextMenuItem>
+        </ContextMenu>
+      )}
+      {folderContextMenu && (
+        <ContextMenu
+          x={folderContextMenu.x}
+          y={folderContextMenu.y}
+          onClose={() => setFolderContextMenu(null)}
+        >
+          <ContextMenuItem onClick={handleRenameFolder}>
+            <Pencil size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
+            Rename Folder
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleDeleteCurrentFolder} danger>
+            <Trash2 size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
+            Delete Folder
           </ContextMenuItem>
         </ContextMenu>
       )}
