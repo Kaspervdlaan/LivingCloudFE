@@ -15,6 +15,22 @@
       opacity: 1;
     }
   }
+
+  &:focus {
+    outline: 2px solid $accent-500;
+    outline-offset: 2px;
+    border-radius: $radius-sm;
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-500;
+    outline-offset: 2px;
+    border-radius: $radius-sm;
+  }
   
   &--grid {
     display: flex;
@@ -149,7 +165,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: $spacing-sm;
+    gap: $spacing-lg;
   }
 }
 

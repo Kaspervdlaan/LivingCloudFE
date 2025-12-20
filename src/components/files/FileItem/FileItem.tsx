@@ -189,6 +189,23 @@ export function FileItem({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isRenaming) return;
+    
+    // Enter key opens the file/folder
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      onDoubleClick?.();
+    }
+    // Space key also opens (common pattern for buttons)
+    else if (e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      onDoubleClick?.();
+    }
+  };
+
   const handleRenameFromContextMenu = () => {
     setIsRenaming(true);
     setFileName(file.name);
@@ -211,7 +228,7 @@ export function FileItem({
     setIsRenaming(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
@@ -317,6 +334,9 @@ export function FileItem({
     <>
       <div
         className={`file-item file-item--${viewMode} ${isDragging ? 'file-item--dragging' : ''} ${isDragOver ? 'file-item--drag-over' : ''}`}
+        role="button"
+        tabIndex={isRenaming ? -1 : 0}
+        aria-label={`${file.type === 'folder' ? 'Folder' : 'File'}: ${file.name}. Press Enter to open.`}
         draggable={!isRenaming}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -325,6 +345,7 @@ export function FileItem({
         onDrop={handleDrop}
         onContextMenu={handleContextMenu}
         onClick={handleItemClick}
+        onKeyDown={handleKeyDown}
       >
         <div className="file-item__content">
           <div className="file-item__icon" onDoubleClick={onDoubleClick}>
@@ -356,7 +377,7 @@ export function FileItem({
                     e.target.focus();
                   }
                 }}
-                onKeyDown={handleKeyDown}
+                onKeyDown={handleRenameKeyDown}
               />
             ) : (
               <div 
