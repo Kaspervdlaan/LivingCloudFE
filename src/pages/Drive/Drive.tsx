@@ -9,13 +9,17 @@ import { DropZone, useDropZone } from '../../components/files/DropZone/DropZone'
 import { PhotoPreview } from '../../components/files/PhotoPreview/PhotoPreview';
 import { VideoPreview } from '../../components/files/VideoPreview/VideoPreview';
 import { TextPreview } from '../../components/files/TextPreview/TextPreview';
+import { PdfPreview } from '../../components/files/PdfPreview/PdfPreview';
+import { DocumentPreview } from '../../components/files/DocumentPreview/DocumentPreview';
+import { MarkdownPreview } from '../../components/files/MarkdownPreview/MarkdownPreview';
+import { CsvPreview } from '../../components/files/CsvPreview/CsvPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2 } from 'lucide-react';
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
-import { isImageFile, isVideoFile, isTextFile } from '../../utils/fileUtils';
+import { isImageFile, isVideoFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile } from '../../utils/fileUtils';
 import { api } from '../../utils/api';
 import { authApi } from '../../services/authApi';
 import './_Drive.scss';
@@ -72,6 +76,10 @@ export function Drive() {
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const [isVideoPreviewOpen, setIsVideoPreviewOpen] = useState(false);
   const [isTextPreviewOpen, setIsTextPreviewOpen] = useState(false);
+  const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
+  const [isDocumentPreviewOpen, setIsDocumentPreviewOpen] = useState(false);
+  const [isMarkdownPreviewOpen, setIsMarkdownPreviewOpen] = useState(false);
+  const [isCsvPreviewOpen, setIsCsvPreviewOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<File | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -155,6 +163,18 @@ export function Drive() {
     } else if (isVideoFile(file)) {
       setSelectedFile(file);
       setIsVideoPreviewOpen(true);
+    } else if (isPdfFile(file)) {
+      setSelectedFile(file);
+      setIsPdfPreviewOpen(true);
+    } else if (isMarkdownFile(file)) {
+      setSelectedFile(file);
+      setIsMarkdownPreviewOpen(true);
+    } else if (isCsvFile(file)) {
+      setSelectedFile(file);
+      setIsCsvPreviewOpen(true);
+    } else if (isOfficeFile(file)) {
+      setSelectedFile(file);
+      setIsDocumentPreviewOpen(true);
     } else if (isTextFile(file)) {
       setSelectedFile(file);
       setIsTextPreviewOpen(true);
@@ -185,6 +205,10 @@ export function Drive() {
         setIsPhotoPreviewOpen(false);
         setIsVideoPreviewOpen(false);
         setIsTextPreviewOpen(false);
+        setIsPdfPreviewOpen(false);
+        setIsDocumentPreviewOpen(false);
+        setIsMarkdownPreviewOpen(false);
+        setIsCsvPreviewOpen(false);
         setSelectedFile(null);
       }
       
@@ -555,6 +579,42 @@ export function Drive() {
         files={files}
         onClose={() => {
           setIsTextPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <PdfPreview
+        isOpen={isPdfPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsPdfPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <DocumentPreview
+        isOpen={isDocumentPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsDocumentPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <MarkdownPreview
+        isOpen={isMarkdownPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsMarkdownPreviewOpen(false);
+          setSelectedFile(null);
+        }}
+      />
+      <CsvPreview
+        isOpen={isCsvPreviewOpen}
+        file={selectedFile}
+        files={files}
+        onClose={() => {
+          setIsCsvPreviewOpen(false);
           setSelectedFile(null);
         }}
       />

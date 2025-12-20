@@ -68,6 +68,146 @@ export function isTextFile(file: { name?: string; mimeType?: string; extension?:
   return false;
 }
 
+// PDF file extensions
+const PDF_EXTENSIONS = ['pdf'];
+const PDF_MIME_TYPES = ['application/pdf'];
+
+export function isPdfFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return PDF_MIME_TYPES.includes(file.mimeType);
+  }
+  
+  if (file.extension) {
+    return PDF_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? PDF_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
+// Office file extensions
+const OFFICE_EXTENSIONS = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'];
+const OFFICE_MIME_TYPES = [
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.oasis.opendocument.text',
+  'application/vnd.oasis.opendocument.spreadsheet',
+  'application/vnd.oasis.opendocument.presentation',
+];
+
+export function isOfficeFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return OFFICE_MIME_TYPES.includes(file.mimeType) || 
+           file.mimeType.startsWith('application/vnd.ms-') ||
+           file.mimeType.startsWith('application/vnd.openxmlformats-officedocument') ||
+           file.mimeType.startsWith('application/vnd.oasis.opendocument');
+  }
+  
+  if (file.extension) {
+    return OFFICE_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? OFFICE_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
+// Code file extensions
+const CODE_EXTENSIONS = [
+  'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'cs', 'php', 'rb', 'go', 'rs',
+  'swift', 'kt', 'scala', 'sh', 'bash', 'zsh', 'ps1', 'r', 'm', 'mm', 'pl', 'pm', 'lua',
+  'html', 'htm', 'css', 'scss', 'sass', 'less', 'xml', 'json', 'yaml', 'yml', 'toml',
+  'vue', 'svelte', 'dart', 'elm', 'clj', 'cljs', 'ex', 'exs', 'erl', 'hrl'
+];
+const CODE_MIME_TYPES = [
+  'text/javascript',
+  'application/javascript',
+  'text/x-python',
+  'text/x-java-source',
+  'text/x-c++src',
+  'text/x-csrc',
+  'text/x-php',
+  'text/x-ruby',
+  'text/x-go',
+  'text/html',
+  'text/css',
+  'application/xml',
+  'text/xml',
+];
+
+export function isCodeFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return CODE_MIME_TYPES.includes(file.mimeType) ||
+           file.mimeType.startsWith('text/x-') ||
+           file.mimeType === 'application/javascript' ||
+           file.mimeType === 'text/javascript';
+  }
+  
+  if (file.extension) {
+    return CODE_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? CODE_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
+// Markdown file extensions
+const MARKDOWN_EXTENSIONS = ['md', 'markdown', 'mdown', 'mkd', 'mkdn'];
+const MARKDOWN_MIME_TYPES = ['text/markdown', 'text/x-markdown'];
+
+export function isMarkdownFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return MARKDOWN_MIME_TYPES.includes(file.mimeType);
+  }
+  
+  if (file.extension) {
+    return MARKDOWN_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? MARKDOWN_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
+// CSV file extensions
+const CSV_EXTENSIONS = ['csv'];
+const CSV_MIME_TYPES = ['text/csv', 'application/csv', 'text/x-csv', 'application/vnd.ms-excel'];
+
+export function isCsvFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  if (file.mimeType) {
+    return CSV_MIME_TYPES.includes(file.mimeType);
+  }
+  
+  if (file.extension) {
+    return CSV_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? CSV_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
 export function getFileExtension(filename: string): string {
   const parts = filename.split('.');
   return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
