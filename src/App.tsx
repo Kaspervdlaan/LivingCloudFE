@@ -17,6 +17,11 @@ function AuthCallback() {
     const token = searchParams.get('token');
     if (token) {
       setToken(token);
+      // Remove token from URL for security
+      window.history.replaceState({}, '', '/auth/callback');
+      checkAuth();
+    } else {
+      // If no token in URL, try to check auth anyway (might be in cookie)
       checkAuth();
     }
   }, [searchParams, checkAuth]);
