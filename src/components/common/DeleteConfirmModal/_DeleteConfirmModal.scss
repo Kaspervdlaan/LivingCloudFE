@@ -133,20 +133,20 @@
 }
 
 .delete-confirm-modal__delete-button {
-  background-color: #dc2626 !important;
-  color: white !important;
-  border-color: #dc2626 !important;
+  background-color: #dc2626;
+  color: white;
+  border-color: #dc2626;
   display: flex;
   gap: $spacing-sm;
   
   &:hover:not(:disabled) {
-    background-color: #b91c1c !important;
-    border-color: #b91c1c !important;
+    background-color: #b91c1c;
+    border-color: #b91c1c;
   }
   
   &:active:not(:disabled) {
-    background-color: #991b1b !important;
-    border-color: #991b1b !important;
+    background-color: #991b1b;
+    border-color: #991b1b;
   }
 }
 

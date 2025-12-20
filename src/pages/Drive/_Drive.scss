@@ -146,8 +146,8 @@
 
   @media (max-width: $breakpoint-md) {
     gap: 0;
-    padding: $spacing-sm !important;
-    font-size: $font-size-sm !important;
+    padding: $spacing-sm;
+    font-size: $font-size-sm;
     min-width: 44px; // Ensure good touch target
 
     svg {
