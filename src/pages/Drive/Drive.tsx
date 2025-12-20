@@ -403,6 +403,12 @@ export function Drive() {
     setFolderContextMenu(null);
   };
 
+  const handleFileShare = (file: File) => {
+    if (file.type === 'folder') {
+      setFolderToShare(file);
+    }
+  };
+
   // Check if admin is at root level (should show user list)
   const isAdminAtRoot = user?.role === 'admin' && currentFolderId === undefined && !viewingUserId;
   
@@ -567,6 +573,7 @@ export function Drive() {
                         onDoubleClickFileName={handleDoubleClickFileName}
                         onFileDelete={handleFileDelete}
                         onFileDownload={handleFileDownload}
+                        onFileShare={handleFileShare}
                         onFileDrop={handleFileDrop}
                         onDropFiles={handleDropFiles}
                         onDragOver={handleDragOver}
@@ -583,6 +590,7 @@ export function Drive() {
                         onDoubleClickFileName={handleDoubleClickFileName}
                         onFileDelete={handleFileDelete}
                         onFileDownload={handleFileDownload}
+                        onFileShare={handleFileShare}
                         onFileDrop={handleFileDrop}
                         onDropFiles={handleDropFiles}
                         onDragOver={handleDragOver}
@@ -720,15 +728,15 @@ export function Drive() {
         >
           <ContextMenuItem onClick={handleRenameFolder}>
             <Pencil size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
-            Rename Folder
+            <span>Rename Folder</span>
           </ContextMenuItem>
           <ContextMenuItem onClick={handleShareFolder}>
             <Share2 size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
-            Share Folder
+            <span>Share Folder</span>
           </ContextMenuItem>
           <ContextMenuItem onClick={handleDeleteCurrentFolder} danger>
             <Trash2 size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
-            Delete Folder
+            <span>Delete Folder</span>
           </ContextMenuItem>
         </ContextMenu>
       )}

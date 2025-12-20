@@ -3,13 +3,14 @@
 
 .context-menu {
   position: fixed;
+  display: flex;
+  flex-direction: column;
   background-color: $surface;
   border: 1px solid $border;
   border-radius: $radius-md;
   box-shadow: $shadow-strong;
   padding: $spacing-xs;
   z-index: 1000;
-  min-width: 180px;
 }
 
 .context-menu__item {
@@ -40,6 +41,7 @@
 .context-menu__item-content {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $spacing-xs;
+  
 }
 

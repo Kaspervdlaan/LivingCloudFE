@@ -87,7 +87,9 @@ export function ContextMenuItem({ onClick, children, danger = false }: ContextMe
       className={`context-menu__item ${danger ? 'context-menu__item--danger' : ''}`}
       onClick={onClick}
     >
-      {children}
+      <span className="context-menu__item-content">
+        {children}
+      </span>
     </button>
   );
 }

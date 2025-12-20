@@ -10,6 +10,7 @@ import {
   Download,
   Trash2,
   Edit,
+  Share2,
 } from 'lucide-react';
 import { IoFolder, IoFolderOpen } from 'react-icons/io5';
 import type { File } from '../../../types/file';
@@ -24,6 +25,7 @@ interface FileItemProps {
   onDoubleClickFileName?: (file: File, newName: string) => void;
   onDelete?: () => void;
   onDownload?: () => void;
+  onShare?: () => void;
   onDrop?: (draggedFileId: string, targetFolderId: string) => void;
   onDropFiles?: (files: FileList, targetFolderId: string) => void;
   onDragOver?: (folderId: string) => void;
@@ -51,6 +53,7 @@ export function FileItem({
   onDoubleClickFileName,
   onDelete,
   onDownload,
+  onShare,
   onDrop,
   onDropFiles,
   onDragOver,
@@ -407,6 +410,14 @@ export function FileItem({
               <span>Rename</span>
             </span>
           </ContextMenuItem>
+          {onShare && file.type === 'folder' && (
+            <ContextMenuItem onClick={() => { onShare(); handleCloseContextMenu(); }}>
+              <span className="context-menu__item-content">
+                <Share2 size={16} />
+                <span>Share Folder</span>
+              </span>
+            </ContextMenuItem>
+          )}
           {onDownload && file.type === 'file' && (
             <ContextMenuItem onClick={() => { onDownload(); handleCloseContextMenu(); }}>
               <span className="context-menu__item-content">
