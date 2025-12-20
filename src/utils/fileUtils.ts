@@ -198,8 +198,8 @@ export function isCsvFile(file: { name?: string; mimeType?: string; extension?: 
 }
 
 export function isTextFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
-  // Exclude markdown and csv files (they have their own previews)
-  if (isMarkdownFile(file) || isCsvFile(file)) {
+  // Exclude markdown, csv, and code files (they have their own previews or special handling)
+  if (isMarkdownFile(file) || isCsvFile(file) || isCodeFile(file)) {
     return false;
   }
   

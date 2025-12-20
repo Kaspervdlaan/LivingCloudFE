@@ -19,7 +19,7 @@ import { Button } from '../../components/common/Button/Button';
 import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2 } from 'lucide-react';
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
-import { isImageFile, isVideoFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile } from '../../utils/fileUtils';
+import { isImageFile, isVideoFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile, isCodeFile } from '../../utils/fileUtils';
 import { api } from '../../utils/api';
 import { authApi } from '../../services/authApi';
 import './_Drive.scss';
@@ -175,6 +175,10 @@ export function Drive() {
     } else if (isOfficeFile(file)) {
       setSelectedFile(file);
       setIsDocumentPreviewOpen(true);
+    } else if (isCodeFile(file)) {
+      // Code files use the text preview (which can show syntax highlighting)
+      setSelectedFile(file);
+      setIsTextPreviewOpen(true);
     } else if (isTextFile(file)) {
       setSelectedFile(file);
       setIsTextPreviewOpen(true);

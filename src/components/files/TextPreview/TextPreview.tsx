@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { File } from '../../../types/file';
-import { isTextFile } from '../../../utils/fileUtils';
+import { isTextFile, isCodeFile } from '../../../utils/fileUtils';
 import { api } from '../../../utils/api';
 import './_TextPreview.scss';
 
@@ -20,14 +20,15 @@ export function TextPreview({ isOpen, file, files, onClose }: TextPreviewProps) 
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const textFiles = files.filter(f => isTextFile(f));
+  // Include both text files and code files in the preview
+  const textFiles = files.filter(f => isTextFile(f) || isCodeFile(f));
   const textFileIds = useMemo(() => textFiles.map(f => f.id), [textFiles]);
 
   // Only set index when the preview first opens, not when navigating
   const hasInitialized = useRef(false);
   useEffect(() => {
     if (file && isOpen && !hasInitialized.current) {
-      const isText = isTextFile(file);
+      const isText = isTextFile(file) || isCodeFile(file);
       if (isText && textFiles.length > 0) {
         const index = textFiles.findIndex(f => f.id === file.id);
         if (index !== -1) {

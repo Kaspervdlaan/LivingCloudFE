@@ -163,9 +163,9 @@ export function DocumentPreview({ isOpen, file, files, onClose }: DocumentPrevie
   const isLoading = loading[currentFile.id];
   const error = errors[currentFile.id];
 
-  // Check if browser can display the document type
-  const canDisplay = currentFile.mimeType?.includes('openxmlformats') || 
-                     currentFile.mimeType?.includes('oasis.opendocument');
+  // Office documents (DOCX, XLSX, PPTX) cannot be displayed directly in browser iframes
+  // Browsers will download them instead. We'll show a download option.
+  // Note: For future enhancement, we could convert to PDF on the backend or use Office Online Viewer
 
   return (
     <div className="document-preview" onClick={onClose}>
@@ -179,17 +179,12 @@ export function DocumentPreview({ isOpen, file, files, onClose }: DocumentPrevie
             <div className="document-preview__loading">Loading document...</div>
           ) : error ? (
             <div className="document-preview__error">{error}</div>
-          ) : documentUrl && canDisplay ? (
-            <iframe
-              src={documentUrl}
-              className="document-preview__iframe"
-              title={currentFile.name}
-            />
-          ) : documentUrl ? (
+          ) : (
             <div className="document-preview__unsupported">
               <div className="document-preview__unsupported-message">
-                <p>This document type cannot be previewed in the browser.</p>
-                <p>Please download the file to view it.</p>
+                <h3>Office Document Preview</h3>
+                <p>Office documents (Word, Excel, PowerPoint) cannot be previewed directly in the browser.</p>
+                <p>Please download the file to view it with Microsoft Office, Google Docs, or another compatible application.</p>
                 <button 
                   className="document-preview__download-button"
                   onClick={handleDownload}
@@ -197,10 +192,14 @@ export function DocumentPreview({ isOpen, file, files, onClose }: DocumentPrevie
                   <Download size={20} />
                   <span>Download {currentFile.name}</span>
                 </button>
+                <div className="document-preview__info-text">
+                  <p><strong>File:</strong> {currentFile.name}</p>
+                  {currentFile.size && (
+                    <p><strong>Size:</strong> {(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  )}
+                </div>
               </div>
             </div>
-          ) : (
-            <div className="document-preview__loading">Loading document...</div>
           )}
         </div>
 
