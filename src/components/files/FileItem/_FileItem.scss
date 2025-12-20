@@ -254,6 +254,13 @@
     transform: scale(1.1);
   }
   
+  // Always visible in grid view on mobile
+  @media (max-width: $breakpoint-md) {
+    .file-item--grid & {
+      opacity: 1;
+    }
+  }
+  
   .file-item--list & {
     position: static;
     opacity: 1;
