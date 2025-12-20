@@ -223,5 +223,68 @@ export const api = {
     
     return response.blob();
   },
+
+  /**
+   * Share a folder with a user
+   */
+  async shareFolder(fileId: string, userId: string, permission: 'read' | 'write' = 'read'): Promise<APIResponse<any>> {
+    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}/share`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getHeaders(),
+      },
+      body: JSON.stringify({ userId, permission }),
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  /**
+   * Unshare a folder with a user
+   */
+  async unshareFolder(fileId: string, userId: string): Promise<void> {
+    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}/share/${encodeURIComponent(userId)}`), {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData: APIError = await response.json();
+        errorMessage = errorData.error?.message || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    if (response.status !== 204) {
+      await response.json();
+    }
+  },
+
+  /**
+   * Get list of users a folder is shared with
+   */
+  async getFolderShares(fileId: string): Promise<APIResponse<any[]>> {
+    const response = await fetch(getApiUrl(`files/${encodeURIComponent(fileId)}/shares`), {
+      headers: getHeaders(),
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+
+  /**
+   * Get folders shared with current user
+   */
+  async getSharedFolders(): Promise<APIResponse<File[]>> {
+    const response = await fetch(getApiUrl('files/shared/folders'), {
+      headers: getHeaders(),
+    });
+    
+    return handleResponse<File[]>(response);
+  },
 };
 

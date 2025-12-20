@@ -16,8 +16,9 @@ import { MarkdownPreview } from '../../components/files/MarkdownPreview/Markdown
 import { CsvPreview } from '../../components/files/CsvPreview/CsvPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
+import { ShareModal } from '../../components/common/ShareModal/ShareModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft, Cloud, Pencil, Trash2 } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud, Pencil, Trash2, Share2 } from 'lucide-react';
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
@@ -88,6 +89,7 @@ export function Drive() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [folderContextMenu, setFolderContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [fileToRename, setFileToRename] = useState<string | null>(null);
+  const [folderToShare, setFolderToShare] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   
@@ -386,6 +388,16 @@ export function Drive() {
       const currentFolder = getFileById(currentFolderId);
       if (currentFolder && currentFolder.type === 'folder') {
         setFileToDelete(currentFolder);
+      }
+    }
+    setFolderContextMenu(null);
+  };
+
+  const handleShareFolder = () => {
+    if (currentFolderId) {
+      const currentFolder = getFileById(currentFolderId);
+      if (currentFolder && currentFolder.type === 'folder') {
+        setFolderToShare(currentFolder);
       }
     }
     setFolderContextMenu(null);
@@ -710,6 +722,10 @@ export function Drive() {
             <Pencil size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
             Rename Folder
           </ContextMenuItem>
+          <ContextMenuItem onClick={handleShareFolder}>
+            <Share2 size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
+            Share Folder
+          </ContextMenuItem>
           <ContextMenuItem onClick={handleDeleteCurrentFolder} danger>
             <Trash2 size={16} style={{ marginRight: '8px', display: 'inline-block' }} />
             Delete Folder
@@ -730,6 +746,20 @@ export function Drive() {
         onClose={() => setUserToDelete(null)}
         onConfirm={confirmUserDelete}
       />
+      {folderToShare && (
+        <ShareModal
+          isOpen={folderToShare !== null}
+          folderId={folderToShare.id}
+          folderName={folderToShare.name}
+          onClose={() => setFolderToShare(null)}
+          onShareUpdate={() => {
+            // Optionally reload files to show updated share status
+            if (currentFolderId) {
+              loadFiles(currentFolderId);
+            }
+          }}
+        />
+      )}
     </Layout>
   );
 }

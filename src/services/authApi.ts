@@ -125,6 +125,24 @@ export const authApi = {
   },
 
   /**
+   * Get users for sharing (available to all authenticated users)
+   */
+  async getUsersForSharing(): Promise<User[]> {
+    const token = getToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(getApiUrl('auth/users/sharing'), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return handleResponse<User[]>(response);
+  },
+
+  /**
    * Delete a user (admin only)
    */
   async deleteUser(userId: string): Promise<void> {
