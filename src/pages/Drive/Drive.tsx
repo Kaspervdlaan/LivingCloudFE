@@ -16,7 +16,7 @@ import { CsvPreview } from '../../components/files/CsvPreview/CsvPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2, EllipsisVertical, Cog } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud } from 'lucide-react';
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
