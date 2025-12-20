@@ -98,7 +98,6 @@
 .drive__actions {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
 
   @media (max-width: $breakpoint-md) {
     gap: $spacing-sm;
@@ -130,12 +129,7 @@
 }
 
 .drive__delete-folder {
-  color: #dc2626;
-
-  &:hover {
-    background-color: rgba(220, 38, 38, 0.1);
-    color: #b91c1c;
-  }
+  padding: $spacing-sm;
 }
 
 .drive__loading,

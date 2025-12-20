@@ -113,7 +113,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-xs $spacing-sm;
+  padding: $spacing-xs;
   border: none;
   background: none;
   cursor: pointer;
@@ -140,7 +140,8 @@
 .header__theme-button {
   @include flex-center;
   gap: $spacing-sm;
-  padding: $spacing-xs $spacing-sm;
+  padding: $spacing-xs;
+  padding-right: 0;
   border: none;
   background: none;
   cursor: pointer;
@@ -233,7 +234,7 @@
 
 .header__logout-button {
   @include flex-center;
-  padding: $spacing-xs $spacing-sm;
+  padding: $spacing-xs;
   border: none;
   background: none;
   cursor: pointer;

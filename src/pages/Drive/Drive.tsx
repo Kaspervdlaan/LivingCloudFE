@@ -16,7 +16,8 @@ import { CsvPreview } from '../../components/files/CsvPreview/CsvPreview';
 import { ContextMenu, ContextMenuItem } from '../../components/common/ContextMenu/ContextMenu';
 import { DeleteConfirmModal } from '../../components/common/DeleteConfirmModal/DeleteConfirmModal';
 import { Button } from '../../components/common/Button/Button';
-import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2 } from 'lucide-react';
+import { FolderPlus, Upload, ArrowLeft, Cloud, Trash2, EllipsisVertical, Cog } from 'lucide-react';
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import type { File } from '../../types/file';
 import type { User } from '../../types/auth';
 import { isImageFile, isVideoFile, isTextFile, isPdfFile, isOfficeFile, isMarkdownFile, isCsvFile, isCodeFile } from '../../utils/fileUtils';
@@ -420,11 +421,22 @@ export function Drive() {
                   : getCurrentFolderName(user?.name)
               }
             </span>
+            {currentFolder && currentFolder.type === 'folder' && (
+                <Button
+                  variant="ghost"
+                  onClick={handleDeleteCurrentFolder}
+                  className="drive__delete-folder"
+                  title={`Delete folder "${currentFolder.name}"`}
+                  aria-label={`Delete folder "${currentFolder.name}"`}
+                >
+                  <HiOutlineCog6Tooth size={20} />
+                </Button>
+              )}
           </div>
           {!isAdminAtRoot && (
             <div className="drive__actions">
               <Button
-                variant="secondary"
+                variant="ghost"
                 onClick={handleUploadClick}
                 className="drive__upload"
               >
@@ -432,25 +444,13 @@ export function Drive() {
                 <span>Upload</span>
               </Button>
               <Button
-                variant="secondary"
+                variant="ghost"
                 onClick={handleCreateFolderFromContext}
                 className="drive__create-folder"
               >
                 <FolderPlus size={20} />
                 <span>New Folder</span>
               </Button>
-              {currentFolder && currentFolder.type === 'folder' && (
-                <Button
-                  variant="secondary"
-                  onClick={handleDeleteCurrentFolder}
-                  className="drive__delete-folder"
-                  title={`Delete folder "${currentFolder.name}"`}
-                  aria-label={`Delete folder "${currentFolder.name}"`}
-                >
-                  <Trash2 size={20} />
-                  <span>Delete Folder</span>
-                </Button>
-              )}
             </div>
           )}
         </div>
