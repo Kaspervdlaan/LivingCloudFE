@@ -190,3 +190,4 @@ export function TextPreview({ isOpen, file, files, onClose }: TextPreviewProps) 
   );
 }
 
+

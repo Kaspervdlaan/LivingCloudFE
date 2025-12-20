@@ -8,8 +8,8 @@ import './_Header.scss';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
-  viewMode: 'grid' | 'list';
-  onViewModeChange: (mode: 'grid' | 'list') => void;
+  viewMode: 'list' | 'grid';
+  onViewModeChange: (mode: 'list' | 'grid') => void;
   onToggleSidebar?: () => void;
   isSidebarOpen?: boolean;
 }
