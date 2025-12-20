@@ -71,7 +71,7 @@ export function DeleteConfirmModal({
               className="delete-confirm-modal__delete-button"
             >
               <Trash2 size={16} />
-              <span>Delete</span>
+              <span >Delete</span>
             </Button>
           </div>
         </form>
