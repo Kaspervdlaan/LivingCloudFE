@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { File } from '../../../types/file';
 import { isTextFile } from '../../../utils/fileUtils';
@@ -23,13 +23,21 @@ export function TextPreview({ isOpen, file, files, onClose }: TextPreviewProps) 
   const textFiles = files.filter(f => isTextFile(f));
   const textFileIds = useMemo(() => textFiles.map(f => f.id), [textFiles]);
 
-  // Only set index when the file prop changes (initial open), not when navigating
+  // Only set index when the preview first opens, not when navigating
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (file && isTextFile(file) && isOpen) {
-      const index = textFiles.findIndex(f => f.id === file.id);
-      if (index !== -1) {
-        setCurrentIndex(index);
+    if (file && isOpen && !hasInitialized.current) {
+      const isText = isTextFile(file);
+      if (isText && textFiles.length > 0) {
+        const index = textFiles.findIndex(f => f.id === file.id);
+        if (index !== -1) {
+          setCurrentIndex(index);
+          hasInitialized.current = true;
+        }
       }
+    }
+    if (!isOpen) {
+      hasInitialized.current = false;
     }
   }, [file?.id, isOpen, textFiles]);
 
@@ -130,9 +138,17 @@ export function TextPreview({ isOpen, file, files, onClose }: TextPreviewProps) 
     }
   };
 
-  if (!isOpen || !file || textFiles.length === 0) return null;
+  if (!isOpen) {
+    return null;
+  }
+  
+  if (textFiles.length === 0) {
+    return null;
+  }
 
-  const currentFile = textFiles[currentIndex];
+  // Ensure currentIndex is within bounds
+  const safeIndex = Math.max(0, Math.min(currentIndex, textFiles.length - 1));
+  const currentFile = textFiles[safeIndex];
   const content = textContent[currentFile.id];
   const isLoading = loading[currentFile.id];
   const error = errors[currentFile.id];

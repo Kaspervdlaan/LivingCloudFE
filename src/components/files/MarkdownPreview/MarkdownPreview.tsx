@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { File } from '../../../types/file';
 import { isMarkdownFile } from '../../../utils/fileUtils';
@@ -104,18 +104,21 @@ export function MarkdownPreview({ isOpen, file, files, onClose }: MarkdownPrevie
   const markdownFiles = files.filter(f => isMarkdownFile(f));
   const markdownFileIds = useMemo(() => markdownFiles.map(f => f.id), [markdownFiles]);
 
-  // Only set index when the file prop changes (initial open), not when navigating
+  // Only set index when the preview first opens, not when navigating
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (file && isOpen) {
+    if (file && isOpen && !hasInitialized.current) {
       const isMarkdown = isMarkdownFile(file);
-      console.log('MarkdownPreview - file check:', file.name, 'isMarkdown:', isMarkdown, 'markdownFiles.length:', markdownFiles.length);
       if (isMarkdown && markdownFiles.length > 0) {
         const index = markdownFiles.findIndex(f => f.id === file.id);
-        console.log('MarkdownPreview - found index:', index);
         if (index !== -1) {
           setCurrentIndex(index);
+          hasInitialized.current = true;
         }
       }
+    }
+    if (!isOpen) {
+      hasInitialized.current = false;
     }
   }, [file?.id, isOpen, markdownFiles]);
 
@@ -219,17 +222,17 @@ export function MarkdownPreview({ isOpen, file, files, onClose }: MarkdownPrevie
     }
   };
 
-  if (!isOpen || !file) {
-    console.log('MarkdownPreview - not rendering:', { isOpen, hasFile: !!file, markdownFilesLength: markdownFiles.length });
+  if (!isOpen) {
     return null;
   }
   
   if (markdownFiles.length === 0) {
-    console.log('MarkdownPreview - no markdown files found in files array');
     return null;
   }
 
-  const currentFile = markdownFiles[currentIndex];
+  // Ensure currentIndex is within bounds
+  const safeIndex = Math.max(0, Math.min(currentIndex, markdownFiles.length - 1));
+  const currentFile = markdownFiles[safeIndex];
   const content = htmlContent[currentFile.id];
   const isLoading = loading[currentFile.id];
   const error = errors[currentFile.id];

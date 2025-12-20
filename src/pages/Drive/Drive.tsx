@@ -167,7 +167,6 @@ export function Drive() {
       setSelectedFile(file);
       setIsPdfPreviewOpen(true);
     } else if (isMarkdownFile(file)) {
-      console.log('Opening markdown file:', file.name, file.extension, file.mimeType);
       setSelectedFile(file);
       setIsMarkdownPreviewOpen(true);
     } else if (isCsvFile(file)) {
