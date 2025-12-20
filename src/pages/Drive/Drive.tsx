@@ -517,6 +517,7 @@ export function Drive() {
           onChange={handleFileInputChange}
         />
 
+        <div className="drive__content">
         {isAdminAtRoot ? (
           <>
             {usersLoading && <div className="drive__loading">Loading users...</div>}
@@ -586,6 +587,7 @@ export function Drive() {
             )}
           </>
         )}
+        </div>
       </div>
     );
   }

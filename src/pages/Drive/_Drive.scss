@@ -2,10 +2,14 @@
 @use '../../styles/mixins' as *;
 
 .drive {
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
 
   @media (max-width: $breakpoint-md) {
-    padding-bottom: 70px; // Space for fixed bottom bubar
+    padding-bottom: 70px; // Space for fixed bottom toolbar
   }
 }
 
@@ -14,10 +18,15 @@
   padding: $spacing-md;
   background-color: $surface;
   border-bottom: 1px solid $border;
+  flex-shrink: 0;
+  z-index: 10;
+  position: sticky;
+  top: 0;
 
   @media (max-width: $breakpoint-md) {
     position: fixed;
     bottom: 0;
+    top: auto;
     left: 0;
     right: 0;
     gap: $spacing-sm;
@@ -26,6 +35,13 @@
     z-index: 100;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
   }
+}
+
+.drive__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; // Important for flex children to respect overflow
 }
 
 .drive__breadcrumb {
