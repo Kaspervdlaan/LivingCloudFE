@@ -24,14 +24,31 @@
     min-height: 120px;
     justify-content: flex-start;
     height: 100%;
+
+    .file-item__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: $spacing-sm;
+    }
   }
   
   &--list {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     gap: $spacing-sm;
     padding: $spacing-sm $spacing-md;
+
+    .file-item__content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: $spacing-sm;
+    }
     
     &:nth-child(even) {
       background-color: $primary-200;
@@ -43,11 +60,6 @@
     
     &:hover {
       background-color: $primary-400 !important;
-    }
-    
-    // Menu button should appear before icon in list mode
-    .file-item__menu {
-      order: -1;
     }
   }
 

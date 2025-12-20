@@ -30,7 +30,7 @@ interface FileItemProps {
   onDragLeave?: () => void;
   onDropComplete?: () => void;
   isDragOver?: boolean;
-  viewMode?: 'grid' | 'list';
+  viewMode?: 'list' | 'grid';
   shouldStartRenaming?: boolean;
   currentFolderId?: string;
 }
@@ -57,7 +57,7 @@ export function FileItem({
   onDragLeave,
   onDropComplete,
   isDragOver,
-  viewMode = 'grid',
+  viewMode = 'list',
   shouldStartRenaming = false,
   currentFolderId,
 }: FileItemProps) {
@@ -326,52 +326,54 @@ export function FileItem({
         onContextMenu={handleContextMenu}
         onClick={handleItemClick}
       >
-        <div className="file-item__icon" onDoubleClick={onDoubleClick}>
-          {isImageFile(file) && thumbnailUrl ? (
-            <img 
-              src={thumbnailUrl} 
-              alt={file.name} 
-              className="file-item__thumbnail"
-            />
-          ) : (
-            <Icon size={viewMode === 'grid' ? 64 : 32} />
-          )}
-        </div>
-        <div className="file-item__info">
-          {isRenaming ? (
-            <input
-              ref={inputRef}
-              type="text"
-              className="file-item__name file-item__name--editing"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              onBlur={(e) => {
-                // For newly created folders, don't save on blur - wait for Enter
-                // Only save on blur if it's not a newly created folder
-                if (!shouldStartRenaming) {
-                  handleSaveRename();
-                } else {
-                  // Keep focus if it's a newly created folder
-                  e.target.focus();
-                }
-              }}
-              onKeyDown={handleKeyDown}
-            />
-          ) : (
-            <div 
-              className="file-item__name" 
-              title={file.name} 
-              onClick={handleNameClick}
-              onDoubleClick={handleDoubleClickFileName}
-            >
-              {file.name}
-            </div>
-          )}
+        <div className="file-item__content">
+          <div className="file-item__icon" onDoubleClick={onDoubleClick}>
+            {isImageFile(file) && thumbnailUrl ? (
+              <img 
+                src={thumbnailUrl} 
+                alt={file.name} 
+                className="file-item__thumbnail"
+              />
+            ) : (
+              <Icon size={viewMode === 'grid' ? 64 : 32} />
+            )}
+          </div>
+          <div className="file-item__info">
+            {isRenaming ? (
+              <input
+                ref={inputRef}
+                type="text"
+                className="file-item__name file-item__name--editing"
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                onBlur={(e) => {
+                  // For newly created folders, don't save on blur - wait for Enter
+                  // Only save on blur if it's not a newly created folder
+                  if (!shouldStartRenaming) {
+                    handleSaveRename();
+                  } else {
+                    // Keep focus if it's a newly created folder
+                    e.target.focus();
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+              />
+            ) : (
+              <div 
+                className="file-item__name" 
+                title={file.name} 
+                onClick={handleNameClick}
+                onDoubleClick={handleDoubleClickFileName}
+              >
+                {file.name}
+              </div>
+              )}
 
-          {file.type === 'file' && file.size && (
-            <div className="file-item__size">{formatFileSize(file.size)}</div>
-          )}
-        </div>
+              {file.type === 'file' && file.size && (
+                <div className="file-item__size">{formatFileSize(file.size)}</div>
+              )}
+            </div>
+          </div>
         <button className="file-item__menu" onClick={handleContextMenu}>
           <MoreVertical size={14} />
         </button>

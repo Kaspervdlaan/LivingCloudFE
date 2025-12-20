@@ -61,7 +61,11 @@ export function Drive() {
     }
   };
 
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  // Load view mode from localStorage, default to 'list'
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    const saved = localStorage.getItem('drive-view-mode');
+    return (saved === 'list' || saved === 'grid') ? saved : 'list';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredFiles, setFilteredFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -74,8 +78,10 @@ export function Drive() {
   const [fileToRename, setFileToRename] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  
   const handleViewModeChange = (mode: 'list' | 'grid') => {
     setViewMode(mode);
+    localStorage.setItem('drive-view-mode', mode);
   };
 
   // Load all users if admin
@@ -394,7 +400,7 @@ export function Drive() {
                 onClick={handleUploadClick}
                 className="drive__upload"
               >
-                <Upload size={24} />
+                <Upload size={20} />
                 <span>Upload</span>
               </Button>
               <Button
@@ -402,7 +408,7 @@ export function Drive() {
                 onClick={handleCreateFolderFromContext}
                 className="drive__create-folder"
               >
-                <FolderPlus size={24} />
+                <FolderPlus size={20} />
                 <span>New Folder</span>
               </Button>
               {currentFolder && currentFolder.type === 'folder' && (
@@ -413,7 +419,7 @@ export function Drive() {
                   title={`Delete folder "${currentFolder.name}"`}
                   aria-label={`Delete folder "${currentFolder.name}"`}
                 >
-                  <Trash2 size={24} />
+                  <Trash2 size={20} />
                   <span>Delete Folder</span>
                 </Button>
               )}
