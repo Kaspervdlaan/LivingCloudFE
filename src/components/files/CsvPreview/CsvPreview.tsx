@@ -107,9 +107,10 @@ export function CsvPreview({ isOpen, file, files, onClose }: CsvPreviewProps) {
 
         // Check file size
         if (csvFile.size && csvFile.size > MAX_PREVIEW_SIZE) {
+          const sizeMB = Math.round(csvFile.size / 1024 / 1024);
           setErrors(prev => ({
             ...prev,
-            [csvFile.id]: `File is too large to preview (${Math.round(csvFile.size / 1024 / 1024)}MB). Maximum preview size is 10MB.`,
+            [csvFile.id]: `File is too large to preview (${sizeMB}MB). Maximum preview size is 10MB.`,
           }));
           continue;
         }

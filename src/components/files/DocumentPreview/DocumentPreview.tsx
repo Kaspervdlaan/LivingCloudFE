@@ -159,7 +159,6 @@ export function DocumentPreview({ isOpen, file, files, onClose }: DocumentPrevie
   if (!isOpen || !file || documentFiles.length === 0) return null;
 
   const currentFile = documentFiles[currentIndex];
-  const documentUrl = documentUrls[currentFile.id];
   const isLoading = loading[currentFile.id];
   const error = errors[currentFile.id];
 

@@ -145,9 +145,10 @@ export function MarkdownPreview({ isOpen, file, files, onClose }: MarkdownPrevie
 
         // Check file size
         if (mdFile.size && mdFile.size > MAX_PREVIEW_SIZE) {
+          const sizeMB = Math.round(mdFile.size / 1024 / 1024);
           setErrors(prev => ({
             ...prev,
-            [mdFile.id]: `File is too large to preview (${Math.round(mdFile.size / 1024 / 1024)}MB). Maximum preview size is 10MB.`,
+            [mdFile.id]: `File is too large to preview (${sizeMB}MB). Maximum preview size is 10MB.`,
           }));
           continue;
         }

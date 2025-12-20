@@ -64,9 +64,10 @@ export function TextPreview({ isOpen, file, files, onClose }: TextPreviewProps) 
 
         // Check file size
         if (textFile.size && textFile.size > MAX_PREVIEW_SIZE) {
+          const sizeMB = Math.round(textFile.size / 1024 / 1024);
           setErrors(prev => ({
             ...prev,
-            [textFile.id]: `File is too large to preview (${Math.round(textFile.size / 1024 / 1024)}MB). Maximum preview size is 10MB.`,
+            [textFile.id]: `File is too large to preview (${sizeMB}MB). Maximum preview size is 10MB.`,
           }));
           continue;
         }
