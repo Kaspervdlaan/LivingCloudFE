@@ -51,23 +51,6 @@ const TEXT_MIME_TYPES = [
   'text/x-csv',
 ];
 
-export function isTextFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
-  if (file.mimeType) {
-    return TEXT_MIME_TYPES.includes(file.mimeType) || file.mimeType.startsWith('text/');
-  }
-  
-  if (file.extension) {
-    return TEXT_EXTENSIONS.includes(file.extension.toLowerCase());
-  }
-  
-  if (file.name) {
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    return ext ? TEXT_EXTENSIONS.includes(ext) : false;
-  }
-  
-  return false;
-}
-
 // PDF file extensions
 const PDF_EXTENSIONS = ['pdf'];
 const PDF_MIME_TYPES = ['application/pdf'];
@@ -171,17 +154,23 @@ const MARKDOWN_EXTENSIONS = ['md', 'markdown', 'mdown', 'mkd', 'mkdn'];
 const MARKDOWN_MIME_TYPES = ['text/markdown', 'text/x-markdown'];
 
 export function isMarkdownFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
-  if (file.mimeType) {
-    return MARKDOWN_MIME_TYPES.includes(file.mimeType);
-  }
-  
+  // Check extension first (most reliable for markdown files)
   if (file.extension) {
-    return MARKDOWN_EXTENSIONS.includes(file.extension.toLowerCase());
+    if (MARKDOWN_EXTENSIONS.includes(file.extension.toLowerCase())) {
+      return true;
+    }
   }
   
   if (file.name) {
     const ext = file.name.split('.').pop()?.toLowerCase();
-    return ext ? MARKDOWN_EXTENSIONS.includes(ext) : false;
+    if (ext && MARKDOWN_EXTENSIONS.includes(ext)) {
+      return true;
+    }
+  }
+  
+  // Check MIME type last (many .md files have text/plain as mimeType)
+  if (file.mimeType) {
+    return MARKDOWN_MIME_TYPES.includes(file.mimeType);
   }
   
   return false;
@@ -203,6 +192,31 @@ export function isCsvFile(file: { name?: string; mimeType?: string; extension?: 
   if (file.name) {
     const ext = file.name.split('.').pop()?.toLowerCase();
     return ext ? CSV_EXTENSIONS.includes(ext) : false;
+  }
+  
+  return false;
+}
+
+export function isTextFile(file: { name?: string; mimeType?: string; extension?: string }): boolean {
+  // Exclude markdown and csv files (they have their own previews)
+  if (isMarkdownFile(file) || isCsvFile(file)) {
+    return false;
+  }
+  
+  if (file.mimeType) {
+    return TEXT_MIME_TYPES.includes(file.mimeType) || 
+           (file.mimeType.startsWith('text/') && 
+            !file.mimeType.includes('markdown') && 
+            !file.mimeType.includes('csv'));
+  }
+  
+  if (file.extension) {
+    return TEXT_EXTENSIONS.includes(file.extension.toLowerCase());
+  }
+  
+  if (file.name) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    return ext ? TEXT_EXTENSIONS.includes(ext) : false;
   }
   
   return false;

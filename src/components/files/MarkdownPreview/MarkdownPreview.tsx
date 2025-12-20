@@ -16,37 +16,81 @@ const MAX_PREVIEW_SIZE = 10 * 1024 * 1024; // 10MB limit for preview
 
 // Simple markdown to HTML converter (basic implementation)
 function markdownToHtml(markdown: string): string {
-  let html = markdown
-    // Headers
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    // Bold
-    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-    .replace(/__(.*?)__/gim, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-    .replace(/_(.*?)_/gim, '<em>$1</em>')
-    // Code blocks
-    .replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>')
-    // Inline code
-    .replace(/`([^`]+)`/gim, '<code>$1</code>')
-    // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-    // Line breaks
-    .replace(/\n\n/gim, '</p><p>')
-    .replace(/\n/gim, '<br>');
+  if (!markdown || markdown.trim() === '') {
+    return '<p>Empty file</p>';
+  }
 
-  // Wrap in paragraphs
-  html = '<p>' + html + '</p>';
+  // Split into lines for better processing
+  const lines = markdown.split('\n');
+  const htmlLines: string[] = [];
+  let inCodeBlock = false;
+  let codeBlockContent: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Handle code blocks
+    if (line.trim().startsWith('```')) {
+      if (inCodeBlock) {
+        // End code block
+        htmlLines.push(`<pre><code>${codeBlockContent.join('\n')}</code></pre>`);
+        codeBlockContent = [];
+        inCodeBlock = false;
+      } else {
+        // Start code block
+        inCodeBlock = true;
+      }
+      continue;
+    }
+    
+    if (inCodeBlock) {
+      codeBlockContent.push(line);
+      continue;
+    }
+    
+    // Process regular markdown
+    let processed = line;
+    
+    // Headers
+    if (line.match(/^### /)) {
+      processed = `<h3>${line.replace(/^### /, '')}</h3>`;
+    } else if (line.match(/^## /)) {
+      processed = `<h2>${line.replace(/^## /, '')}</h2>`;
+    } else if (line.match(/^# /)) {
+      processed = `<h1>${line.replace(/^# /, '')}</h1>`;
+    } else {
+      // Bold (must come before italic)
+      processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      processed = processed.replace(/__(.*?)__/g, '<strong>$1</strong>');
+      // Italic (single asterisk/underscore, avoid matching inside code blocks)
+      processed = processed.replace(/(^|[^*])\*([^*]+?)\*([^*]|$)/g, '$1<em>$2</em>$3');
+      processed = processed.replace(/(^|[^_])_([^_]+?)_([^_]|$)/g, '$1<em>$2</em>$3');
+      // Inline code
+      processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Links
+      processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      
+      // Wrap in paragraph if not empty
+      if (processed.trim()) {
+        processed = `<p>${processed}</p>`;
+      }
+    }
+    
+    htmlLines.push(processed);
+  }
+  
+  // Handle unclosed code block
+  if (inCodeBlock && codeBlockContent.length > 0) {
+    htmlLines.push(`<pre><code>${codeBlockContent.join('\n')}</code></pre>`);
+  }
+  
+  let html = htmlLines.join('\n');
   
   // Clean up empty paragraphs
-  html = html.replace(/<p><\/p>/gim, '');
-  html = html.replace(/<p><h/gim, '<h');
-  html = html.replace(/<\/h([1-6])><\/p>/gim, '</h$1>');
-  html = html.replace(/<p><pre>/gim, '<pre>');
-  html = html.replace(/<\/pre><\/p>/gim, '</pre>');
-
+  html = html.replace(/<p><\/p>/g, '');
+  html = html.replace(/<p><h/g, '<h');
+  html = html.replace(/<\/h([1-6])><\/p>/g, '</h$1>');
+  
   return html;
 }
 
@@ -62,10 +106,15 @@ export function MarkdownPreview({ isOpen, file, files, onClose }: MarkdownPrevie
 
   // Only set index when the file prop changes (initial open), not when navigating
   useEffect(() => {
-    if (file && isMarkdownFile(file) && isOpen) {
-      const index = markdownFiles.findIndex(f => f.id === file.id);
-      if (index !== -1) {
-        setCurrentIndex(index);
+    if (file && isOpen) {
+      const isMarkdown = isMarkdownFile(file);
+      console.log('MarkdownPreview - file check:', file.name, 'isMarkdown:', isMarkdown, 'markdownFiles.length:', markdownFiles.length);
+      if (isMarkdown && markdownFiles.length > 0) {
+        const index = markdownFiles.findIndex(f => f.id === file.id);
+        console.log('MarkdownPreview - found index:', index);
+        if (index !== -1) {
+          setCurrentIndex(index);
+        }
       }
     }
   }, [file?.id, isOpen, markdownFiles]);
@@ -170,7 +219,15 @@ export function MarkdownPreview({ isOpen, file, files, onClose }: MarkdownPrevie
     }
   };
 
-  if (!isOpen || !file || markdownFiles.length === 0) return null;
+  if (!isOpen || !file) {
+    console.log('MarkdownPreview - not rendering:', { isOpen, hasFile: !!file, markdownFilesLength: markdownFiles.length });
+    return null;
+  }
+  
+  if (markdownFiles.length === 0) {
+    console.log('MarkdownPreview - no markdown files found in files array');
+    return null;
+  }
 
   const currentFile = markdownFiles[currentIndex];
   const content = htmlContent[currentFile.id];
